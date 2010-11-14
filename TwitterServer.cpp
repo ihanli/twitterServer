@@ -15,9 +15,8 @@ TwitterServer::TwitterServer(const unsigned short port, const unsigned int size,
 
 TwitterServer::~TwitterServer(void)
 {
-    closesocket(requestSocket);
     closesocket(comSocket);
-    WSACleanup();
+    closeRequestSocket();
 }
 
 void TwitterServer::configServer(const unsigned short port, const int af)
@@ -35,8 +34,7 @@ void TwitterServer::configServer(const unsigned short port, const int af)
 
     if(errorCode == SOCKET_ERROR)
     {
-        closesocket(requestSocket);
-        WSACleanup();
+        closeRequestSocket();
 
         throw "\nFAIL: Unable to bind socket!";
     }
@@ -51,8 +49,7 @@ void TwitterServer::configServer(const unsigned short port, const int af)
 
     if(errorCode == SOCKET_ERROR)
     {
-        closesocket(requestSocket);
-        WSACleanup();
+        closeRequestSocket();
 
         throw "\nFAIL: Unable to initiate listen mode!";
     }
@@ -80,6 +77,8 @@ void TwitterServer::acceptClient(void)
 
 void TwitterServer::sendToClient(const char* message)
 {
+    //TODO: check if whole message was sent
+
     int errorCode;
 
     errorCode = send(comSocket, message, bufferSize, 0);
@@ -92,6 +91,8 @@ void TwitterServer::sendToClient(const char* message)
 
 void TwitterServer::receive(char *buffer)
 {
+    //TODO: check if we received the whole message
+
     int errorCode;
 
     errorCode = recv(comSocket, buffer, bufferSize, 0);
@@ -109,3 +110,9 @@ void TwitterServer::receive(char *buffer)
 unsigned int TwitterServer::getBufferSize(void){ return bufferSize; }
 
 void TwitterServer::setBufferSize(unsigned int size){ bufferSize = size; }
+
+void TwitterServer::closeRequestSocket(void)
+{
+    closesocket(requestSocket);
+    WSACleanup();
+}

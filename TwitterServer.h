@@ -20,6 +20,7 @@ class TwitterServer
         SOCKADDR_IN localhost;
         SocketBase socketCreator;
         unsigned int bufferSize;
+        void closeRequestSocket(void);
 };
 
 #endif // TWITTERSERVER_H_INCLUDED

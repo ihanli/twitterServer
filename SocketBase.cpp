@@ -10,6 +10,8 @@ void SocketBase::createSocket(SOCKET* base, int af)
 
     printf("\nStarting baseSocket...");
 
+    memset(&wsa, 0, sizeof(WSADATA));
+
     errorCode = WSAStartup(version, &wsa);
 
     if(errorCode != 0)
