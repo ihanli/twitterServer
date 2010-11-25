@@ -1,8 +1,8 @@
 # depslib dependency file v1.0
-1290689679 source:d:\fhs\ws10\multimediale netzwerke\twitterserver\twitterserver.cpp
+1290694261 source:d:\fhs\ws10\multimediale netzwerke\twitterserver\twitterserver.cpp
 	"TwitterServer.h"
 
-1290691083 d:\fhs\ws10\multimediale netzwerke\twitterserver\twitterserver.h
+1290692554 d:\fhs\ws10\multimediale netzwerke\twitterserver\twitterserver.h
 	<windows.h>
 	<cstring>
 	"SocketBase.h"
@@ -12,10 +12,10 @@
 	<winsock2.h>
 	"SocketBase.h"
 
-1290689774 source:d:\fhs\ws10\multimediale netzwerke\twitterserver\main.cpp
+1290694128 source:d:\fhs\ws10\multimediale netzwerke\twitterserver\main.cpp
 	<iostream>
 	"TwitterServer.h"
 
-1289728419 source:d:\fhs\ws10\multimediale netzwerke\twitterserver\socketbase.cpp
+1290694418 source:d:\fhs\ws10\multimediale netzwerke\twitterserver\socketbase.cpp
 	"SocketBase.h"
 

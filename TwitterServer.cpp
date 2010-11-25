@@ -10,7 +10,7 @@ TwitterServer::TwitterServer(const unsigned short port, const unsigned int size,
 
 	FD_ZERO(&workingActionFlag);
     FD_ZERO(&mainActionFlag);
-    FD_SET(requestSocket, &mainActionFlag);
+
 
     try
     {
@@ -21,6 +21,8 @@ TwitterServer::TwitterServer(const unsigned short port, const unsigned int size,
     {
         printf("%c", *e);
     }
+
+    FD_SET(requestSocket, &mainActionFlag);
 }
 
 TwitterServer::~TwitterServer(void)
@@ -85,7 +87,7 @@ void TwitterServer::clientListener(void)
 {
 	memcpy(&workingActionFlag, &mainActionFlag, sizeof(mainActionFlag));
 
-    activeClients = select(0, &workingActionFlag, NULL, NULL, &timeout);
+    activeClients = select(340, &workingActionFlag, NULL, NULL, 0);
 
     if(activeClients == SOCKET_ERROR)
     {
@@ -141,6 +143,7 @@ void TwitterServer::clientListener(void)
 						try
 						{
 							receive(currentClient);
+							sendToClient(currentClient, clientMessage);
 						}
 						catch(const char* e)
 						{
@@ -181,13 +184,13 @@ void TwitterServer::acceptClient(void)
 	}
 }
 
-void TwitterServer::sendToClient(const char* message)
+void TwitterServer::sendToClient(const unsigned int client, const char* message)
 {
     //TODO: check if whole message was sent
 
     int errorCode;
 
-    errorCode = send(comSocket, message, bufferSize, 0);
+    errorCode = send(client, message, bufferSize, 0);
 
     if(errorCode == SOCKET_ERROR)
     {

@@ -23,7 +23,7 @@ void SocketBase::createSocket(SOCKET* base, int af)
         printf("\nSUCCESS: baseSocket started!");
     }
 
-    printf("\nCreating clientSocket...");
+    printf("\nCreating socket...");
 
     *base = socket(af, type, protocol);
 

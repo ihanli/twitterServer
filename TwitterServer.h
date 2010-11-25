@@ -34,7 +34,7 @@ class TwitterServer
         void closeRequestSocket(void) const;
         void closeSockets(SOCKET* client);
         void acceptClient(void);
-        void sendToClient(const char* message);
+        void sendToClient(const unsigned int client, const char* message);
         void receive(int clientSocket);
 };
 
