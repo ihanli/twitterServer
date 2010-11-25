@@ -1,10 +1,12 @@
 #include "TwitterServer.h"
 
 TwitterServer::TwitterServer(const unsigned short port, const unsigned int size, const int af, const WORD version, const int type, const int protocol) :
-               socketCreator(version, type, protocol), bufferSize(size), timeout.tv_sec(300), timeout.tv_usec(0)
+               socketCreator(version, type, protocol), bufferSize(size)
 {
     activeClients = 0;
     comSocket = 0;
+    shutdownServer = false;
+	closeConnection = false;
 
 	FD_ZERO(&workingActionFlag);
     FD_ZERO(&mainActionFlag);
@@ -23,24 +25,30 @@ TwitterServer::TwitterServer(const unsigned short port, const unsigned int size,
 
 TwitterServer::~TwitterServer(void)
 {
-    closeSockets();
+	closeRequestSocket();
+
+	if(MAXCLIENTS > 0)
+	{
+		for(unsigned int currentClient = 0;currentClient <= MAXCLIENTS;currentClient++)
+		{
+			closeSockets(&currentClient);
+		}
+	}
+
+	WSACleanup();
 }
 
 void TwitterServer::configServer(const unsigned short port, const int af)
 {
     int errorCode;
 
+    timeout.tv_sec = 300;
+    timeout.tv_usec = 0;
+
     memset(&localhost, 0, sizeof(SOCKADDR_IN));
     localhost.sin_family = af;
     localhost.sin_port = htons(port);
     localhost.sin_addr.s_addr = ADDR_ANY;
-
-//    errorCode = ioctlsocket(requestSocket, FIONBIO, 1);
-//
-//    if(errorCode < 0)
-//    {
-//        throw "\nFAIL: Couldn't set request socket to non-blocking";
-//    }
 
     printf("\nBinding socket...");
 
@@ -75,12 +83,9 @@ void TwitterServer::configServer(const unsigned short port, const int af)
 
 void TwitterServer::clientListener(void)
 {
-    int errorCode;
-    int new_sd = 0;
-
 	memcpy(&workingActionFlag, &mainActionFlag, sizeof(mainActionFlag));
 
-    activeClients = select(0, &workingActionFlag, NULL, NULL, timeout);
+    activeClients = select(0, &workingActionFlag, NULL, NULL, &timeout);
 
     if(activeClients == SOCKET_ERROR)
     {
@@ -92,9 +97,9 @@ void TwitterServer::clientListener(void)
     }
     else
     {
-    	for(int currentClient = 0;currentClient <= MAXCLIENTS && activeClients > 0;currentClient++)
+    	for(unsigned int currentClient = 0;currentClient <= MAXCLIENTS && activeClients > 0;currentClient++)
     	{
-			if(FD_ISSET(currentClient, workingActionFlag))
+			if(FD_ISSET(currentClient, &workingActionFlag))
 			{
 				activeClients--;
 
@@ -116,7 +121,7 @@ void TwitterServer::clientListener(void)
 						}
 						catch(const char* e)
 						{
-							if(*e == "\nFAIL: No clients left")
+							if(!strcmp(e,"\nFAIL: No clients left"))
 							{
 								shutdownServer = true;
 							}
@@ -147,16 +152,7 @@ void TwitterServer::clientListener(void)
 
 					if(closeConnection)
 					{
-						close(currentClient);
-						FD_CLR(currentClient, &mainActionFlag);
-
-						if(currentClient == MAXCLIENTS)
-						{
-							while(FD_ISSET(MAXCLIENTS, &mainActionFlag) == false)
-							{
-								MAXCLIENTS--;
-							}
-						}
+						closeSockets(&currentClient);
 					}
 				}
 			}
@@ -166,15 +162,13 @@ void TwitterServer::clientListener(void)
 
 void TwitterServer::acceptClient(void)
 {
-    int errorCode;
-
 	comSocket = accept(requestSocket, NULL, NULL);
 
 	if(comSocket == INVALID_SOCKET)
 	{
-		if(errno != EWOULDBLOCK)
+		if(errno != 140)
 		{
-			throw "\nFAIL: No clients left"
+			throw "\nFAIL: No clients left";
 		}
 		else
 		{
@@ -213,7 +207,7 @@ void TwitterServer::receive(int clientSocket)
     {
         throw "\nFAIL: Lost connection to client!";
     }
-    else if(errorCode == SOCKET_ERROR && errno != EWOULDBLOCK)
+    else if(errorCode == SOCKET_ERROR && errno != 140)
     {
         throw "\nFAIL: Unable to receive message!";
     }
@@ -231,13 +225,16 @@ void TwitterServer::closeRequestSocket(void) const
     WSACleanup();
 }
 
-void TwitterServer::closeSockets(void) const
+void TwitterServer::closeSockets(SOCKET* client)
 {
-    closeRequestSocket();
+    closesocket(*client);
+	FD_CLR(*client, &mainActionFlag);
 
-    for (int i = 0; i < MAXCLIENTS; i++)
-    {
-      if (FD_ISSET(comSockets[i], &actionFlag))
-         close(i);
-    }
+	if(*client == MAXCLIENTS)
+	{
+		while(FD_ISSET(MAXCLIENTS, &mainActionFlag) == false)
+		{
+			MAXCLIENTS--;
+		}
+	}
 }
