@@ -32,10 +32,6 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
-		<Unit filename="SocketBase.cpp" />
-		<Unit filename="SocketBase.h" />
-		<Unit filename="TwitterServer.cpp" />
-		<Unit filename="TwitterServer.h" />
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />
