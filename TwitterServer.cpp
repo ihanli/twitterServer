@@ -4,18 +4,16 @@ TwitterServer::TwitterServer(const unsigned short port, const unsigned int size,
                socketCreator(version, type, protocol), bufferSize(size), timeout.tv_sec(300), timeout.tv_usec(0)
 {
     activeClients = 0;
+    comSocket = 0;
 
-    for(int i = 0;i < MAXCLIENTS;i++)
-    {
-        comSockets[i] = INVALID_SOCKET;
-    }
-
-    FD_ZERO(&fdSet);
-    FD_SET(requestSocket, &fdSet);
+	FD_ZERO(&workingActionFlag);
+    FD_ZERO(&mainActionFlag);
+    FD_SET(requestSocket, &mainActionFlag);
 
     try
     {
         socketCreator.createSocket(&requestSocket, af);
+        MAXCLIENTS = requestSocket;
     }
     catch(unsigned char* e)
     {
@@ -31,14 +29,6 @@ TwitterServer::~TwitterServer(void)
 void TwitterServer::configServer(const unsigned short port, const int af)
 {
     int errorCode;
-
-    for(int i = 0;i < MAXCLIENTS;i++)
-    {
-        if(clientSockets[i] != INVALID_SOCKET)
-        {
-            FD_SET(clientSockets[i], &fdSet);
-        }
-    }
 
     memset(&localhost, 0, sizeof(SOCKADDR_IN));
     localhost.sin_family = af;
@@ -86,8 +76,11 @@ void TwitterServer::configServer(const unsigned short port, const int af)
 void TwitterServer::clientListener(void)
 {
     int errorCode;
+    int new_sd = 0;
 
-    activeClients = select(0, &fdSet, NULL, NULL, timeout);
+	memcpy(&workingActionFlag, &mainActionFlag, sizeof(mainActionFlag));
+
+    activeClients = select(0, &workingActionFlag, NULL, NULL, timeout);
 
     if(activeClients == SOCKET_ERROR)
     {
@@ -99,18 +92,94 @@ void TwitterServer::clientListener(void)
     }
     else
     {
+    	for(int currentClient = 0;currentClient <= MAXCLIENTS && activeClients > 0;currentClient++)
+    	{
+			if(FD_ISSET(currentClient, workingActionFlag))
+			{
+				activeClients--;
+
+				if(currentClient == requestSocket)
+				{
+					printf("\nListening socket is readable...");
+
+					while(comSocket != -1)
+					{
+						try
+						{
+							acceptClient();
+							FD_SET(comSocket, &workingActionFlag);
+
+							if(comSocket > MAXCLIENTS)
+							{
+								MAXCLIENTS = comSocket;
+							}
+						}
+						catch(const char* e)
+						{
+							if(*e == "\nFAIL: No clients left")
+							{
+								shutdownServer = true;
+							}
+							else
+							{
+								break;
+							}
+						}
+					}
+				}
+				else
+				{
+					printf("\nReading from client...");
+
+					while(true)
+					{
+						try
+						{
+							receive(currentClient);
+						}
+						catch(const char* e)
+						{
+							printf("%c", *e);
+							closeConnection = true;
+							break;
+						}
+					}
+
+					if(closeConnection)
+					{
+						close(currentClient);
+						FD_CLR(currentClient, &mainActionFlag);
+
+						if(currentClient == MAXCLIENTS)
+						{
+							while(FD_ISSET(MAXCLIENTS, &mainActionFlag) == false)
+							{
+								MAXCLIENTS--;
+							}
+						}
+					}
+				}
+			}
+    	}
     }
 }
 
-void TwitterServer::acceptClient(unsigned int clientIndex)
+void TwitterServer::acceptClient(void)
 {
     int errorCode;
 
-	comSockets[clientIndex] = accept(requestSocket, NULL, NULL);
+	comSocket = accept(requestSocket, NULL, NULL);
 
-	if(clientSockets == INVALID_SOCKET)
+	if(comSocket == INVALID_SOCKET)
 	{
-		throw "\nFAIL: Couldn't connect client!";
+		if(errno != EWOULDBLOCK)
+		{
+			throw "\nFAIL: No clients left"
+		}
+		else
+		{
+			throw "\nFAIL: Couldn't connect client!";
+		}
 	}
 	else
 	{
@@ -132,24 +201,19 @@ void TwitterServer::sendToClient(const char* message)
     }
 }
 
-void TwitterServer::receive(char *buffer)
+void TwitterServer::receive(int clientSocket)
 {
     //TODO: check if we received the whole message
 
     int errorCode;
 
-    while(true)
-    {
-
-    }
-
-    errorCode = recv(comSocket, buffer, bufferSize, 0);
+    errorCode = recv(clientSocket, clientMessage, bufferSize, 0);
 
     if(errorCode == 0)
     {
         throw "\nFAIL: Lost connection to client!";
     }
-    else if(errorCode == SOCKET_ERROR)
+    else if(errorCode == SOCKET_ERROR && errno != EWOULDBLOCK)
     {
         throw "\nFAIL: Unable to receive message!";
     }
@@ -173,7 +237,7 @@ void TwitterServer::closeSockets(void) const
 
     for (int i = 0; i < MAXCLIENTS; i++)
     {
-      if (FD_ISSET(comSockets[i], &fdSet))
+      if (FD_ISSET(comSockets[i], &actionFlag))
          close(i);
     }
 }
