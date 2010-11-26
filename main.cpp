@@ -11,7 +11,7 @@ int main()
 	{
 		myServer.configServer();
 
-		while(myServer.shutdownFlag() == false)
+		while(true)
 		{
 			myServer.clientListener();
 		}

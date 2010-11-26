@@ -1,11 +1,13 @@
 #include "TwitterServer.h"
 
-TwitterServer::TwitterServer(const unsigned short port, const unsigned int size, const int af, const WORD version, const int type, const int protocol) :
-               socketCreator(version, type, protocol), bufferSize(size)
+TwitterServer::TwitterServer(const unsigned short port) :
+               socketCreator()
 {
     try
     {
-        socketCreator.createSocket(&requestSocket, af);
+        socketCreator.createSocket(&requestSocket, AF_INET);
+        FD_ZERO(&actionFlag);
+		FD_SET(requestSocket, &actionFlag);
 
         for(int i = 0;i < MAXCLIENTS;i++)
 		{
@@ -24,12 +26,12 @@ TwitterServer::~TwitterServer(void)
 	WSACleanup();
 }
 
-void TwitterServer::configServer(const unsigned short port, const int af)
+void TwitterServer::configServer(const unsigned short port)
 {
     int errorCode;
 
     memset(&localhost, 0, sizeof(SOCKADDR_IN));
-    localhost.sin_family = af;
+    localhost.sin_family = AF_INET;
     localhost.sin_port = htons(port);
     localhost.sin_addr.s_addr = ADDR_ANY;
 
@@ -68,94 +70,78 @@ void TwitterServer::clientListener(void)
 {
 	int errorCode;
 
-	FD_ZERO(&mainActionFlag);
-	FD_SET(requestSocket, &mainActionFlag);
+	checkClientActivity();
 
-	for(int i = 0; i < MAXCLIENTS;i++)
-	{
-		if(clients[i] != INVALID_SOCKET)
-		{
-			FD_SET(clients[i], &mainActionFlag);
-		}
-	}
-
-	errorCode = select(0, &mainActionFlag, NULL, NULL, 0);
+	errorCode = select(0, &actionFlag, NULL, NULL, 0);
 
 	if(errorCode == SOCKET_ERROR)
 	{
 		throw "\nFAIL: Something went wrong with SELECT!";
 	}
 
-	if(FD_ISSET(requestSocket, &mainActionFlag))
+	if(FD_ISSET(requestSocket, &actionFlag))
 	{
-		for(int i = 0;i < MAXCLIENTS;i++)
+		try
 		{
-			if(clients[i] == INVALID_SOCKET)
-			{
-				try
-				{
-					clients[i] = acceptClient();
-				}
-				catch(const char* e)
-				{
-					printf("%c", *e);
-				}
-
-				break;
-			}
+			acceptClient();
+		}
+		catch(const char* e)
+		{
+			printf("%c", *e);
 		}
 	}
 
 	for(int i = 0;i < MAXCLIENTS;i++)
 	{
-		if(clients[i] != INVALID_SOCKET)
+		if(clients[i] != INVALID_SOCKET && FD_ISSET(clients[i], &actionFlag))
 		{
-			if(FD_ISSET(clients[i], &mainActionFlag))
+			try
 			{
+				//TODO: analyse commands from clients
+
+				receive(&clients[i]);
+
+				printf("\nClient said: %c\n", *clientMessage);
+
 				try
 				{
-					//TODO: analyse commands from clients
-
-					receive(&clients[i]);
-
-					printf("\nClient said: %c\n", *clientMessage);
-
-					try
-					{
-						sendToClient(&clients[i], clientMessage);
-					}
-					catch(const char* e)
-					{
-						printf("%c", *e);
-					}
+					sendToClient(&clients[i], clientMessage);
 				}
 				catch(const char* e)
 				{
 					printf("%c", *e);
-					closesocket(clients[i]);
-					clients[i] = INVALID_SOCKET;
 				}
+			}
+			catch(const char* e)
+			{
+				printf("%c", *e);
+				closesocket(clients[i]);
+				clients[i] = INVALID_SOCKET;
 			}
 		}
 	}
 }
 
-int TwitterServer::acceptClient(void)
+void TwitterServer::acceptClient(void)
 {
-	int comSocket;
-
-	comSocket = accept(requestSocket, NULL, NULL);
-
-	if(comSocket == SOCKET_ERROR)
+	for(int i = 0;i < MAXCLIENTS;i++)
 	{
-		throw "\nFAIL: Couldn't connect client!";
-	}
-	else
-	{
-		printf("\nSUCCESS: Connected with client!");
-	}
+		if(clients[i] == INVALID_SOCKET)
+		{
+			clients[i] = accept(requestSocket, NULL, NULL);
 
-	return comSocket;
+			if(clients[i] == INVALID_SOCKET)
+			{
+				throw "\nFAIL: Couldn't connect client!";
+			}
+			else
+			{
+				printf("\nSUCCESS: Connected with client!");
+			}
+
+			return;
+		}
+	}
 }
 
 void TwitterServer::sendToClient(const SOCKET* client, const char* message)
@@ -164,7 +150,7 @@ void TwitterServer::sendToClient(const SOCKET* client, const char* message)
 
     int errorCode;
 
-    errorCode = send(*client, message, bufferSize, 0);
+    errorCode = send(*client, message, BUFFERSIZE, 0);
 
     if(errorCode == SOCKET_ERROR)
     {
@@ -178,7 +164,7 @@ void TwitterServer::receive(SOCKET* clientSocket)
 
     int errorCode;
 
-    errorCode = recv(*clientSocket, clientMessage, bufferSize, 0);
+    errorCode = recv(*clientSocket, clientMessage, BUFFERSIZE, 0);
 
     if(errorCode == 0)
     {
@@ -190,11 +176,16 @@ void TwitterServer::receive(SOCKET* clientSocket)
     }
 }
 
-bool TwitterServer::shutdownFlag(void) const { return shutdownServer; }
-
-unsigned int TwitterServer::getBufferSize(void) const { return bufferSize; }
-
-void TwitterServer::setBufferSize(unsigned int size){ bufferSize = size; }
+void TwitterServer::checkClientActivity(void)
+{
+	for(int i = 0; i < MAXCLIENTS;i++)
+	{
+		if(clients[i] != INVALID_SOCKET)
+		{
+			FD_SET(clients[i], &actionFlag);
+		}
+	}
+}
 
 void TwitterServer::closeRequestSocket(void) const
 {
@@ -205,7 +196,7 @@ void TwitterServer::closeRequestSocket(void) const
 void TwitterServer::closeSockets(void)
 {
     closesocket(requestSocket);
-	FD_ZERO(&mainActionFlag);
+	FD_ZERO(&actionFlag);
 
 	for(int i = 0;i < MAXCLIENTS;i++)
 	{
