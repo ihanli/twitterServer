@@ -14,9 +14,9 @@ TwitterServer::TwitterServer(const unsigned short port) :
 			clients[i] = INVALID_SOCKET;
 		}
     }
-    catch(unsigned char* e)
+    catch(const char* failure)
     {
-        printf("%c", *e);
+        printf("%s", failure);
     }
 }
 
@@ -76,6 +76,9 @@ void TwitterServer::clientListener(void)
 
 	if(errorCode == SOCKET_ERROR)
 	{
+		FD_ZERO(&actionFlag);
+		FD_SET(requestSocket, &actionFlag);
+
 		throw "\nFAIL: Something went wrong with SELECT!";
 	}
 
@@ -85,9 +88,9 @@ void TwitterServer::clientListener(void)
 		{
 			acceptClient();
 		}
-		catch(const char* e)
+		catch(const char* failure)
 		{
-			printf("%c", *e);
+			printf("%s", failure);
 		}
 	}
 
@@ -101,20 +104,26 @@ void TwitterServer::clientListener(void)
 
 				receive(&clients[i]);
 
+				if(!strcmp(clientMessage, "offline"))
+				{
+					printf("\nClient %d went offline!\n", i);
+					closesocket(clients[i]);
+				}
+
 				printf("\nClient said: %c\n", *clientMessage);
 
 				try
 				{
 					sendToClient(&clients[i], clientMessage);
 				}
-				catch(const char* e)
+				catch(const char* failure)
 				{
-					printf("%c", *e);
+					printf("%s", failure);
 				}
 			}
-			catch(const char* e)
+			catch(const char* failure)
 			{
-				printf("%c", *e);
+				printf("%s", failure);
 				closesocket(clients[i]);
 				clients[i] = INVALID_SOCKET;
 			}

@@ -16,7 +16,7 @@ void SocketBase::createSocket(SOCKET* base, int af)
 
     if(errorCode != 0)
     {
-        throw "\nFAIL: Couldn't start baseSocket (WSAStartup)";
+        throw "\nFAIL: Couldn't start baseSocket (WSAStartup)";//exceptionTexter("\nFAIL: Couldn't start baseSocket (WSAStartup)", WSAGetLastError());
     }
     else
     {
@@ -29,7 +29,7 @@ void SocketBase::createSocket(SOCKET* base, int af)
 
     if(*base == INVALID_SOCKET)
     {
-        throw "\nFAIL: Couldn't create socket (socket)";
+    	throw "\nFAIL: Couldn't create socket (socket)";//"exceptionTexter("\nFAIL: Couldn't create socket (socket)", WSAGetLastError());
     }
     else
     {

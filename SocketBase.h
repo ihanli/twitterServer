@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <winsock2.h>
 #include "SocketBase.h"
+//#include "ExceptionTexter.h"
 
 class SocketBase
 {

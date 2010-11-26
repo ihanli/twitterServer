@@ -2,7 +2,7 @@
 #define TWITTERSERVER_H_INCLUDED
 
 #include <windows.h>
-#include <cstring>
+#include <string>
 #include "SocketBase.h"
 
 #define MAXCLIENTS 10

@@ -16,9 +16,9 @@ int main()
 			myServer.clientListener();
 		}
 	}
-	catch(const char* e)
+	catch(const char* failure)
 	{
-		printf("%c", *e);
+		printf("%s", failure);
 	}
 
     return 0;
