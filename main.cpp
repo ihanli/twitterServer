@@ -7,18 +7,18 @@ int main()
 {
 	TwitterServer myServer;
 
-	myServer.configServer();
-
-	while(myServer.shutdownFlag() == false)
+	try
 	{
-		try
+		myServer.configServer();
+
+		while(myServer.shutdownFlag() == false)
 		{
 			myServer.clientListener();
 		}
-		catch(const char* e)
-		{
-			printf("%s", *e);
-		}
+	}
+	catch(const char* e)
+	{
+		printf("%c", *e);
 	}
 
     return 0;

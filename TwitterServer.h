@@ -5,6 +5,8 @@
 #include <cstring>
 #include "SocketBase.h"
 
+#define MAXCLIENTS 10
+
 using namespace std;
 
 class TwitterServer
@@ -19,23 +21,20 @@ class TwitterServer
         bool shutdownFlag(void) const;
 
     private:
-        SOCKET requestSocket, MAXCLIENTS;
+        SOCKET requestSocket;
+        SOCKET clients[MAXCLIENTS];
         SOCKADDR_IN localhost;
-        FD_SET mainActionFlag, workingActionFlag;
+        FD_SET mainActionFlag;
         SocketBase socketCreator;
-        struct timeval timeout;
-        int comSocket;
-        int activeClients;
         unsigned int bufferSize;
         bool shutdownServer;
-        bool closeConnection;
         char *clientMessage;
 
         void closeRequestSocket(void) const;
-        void closeSockets(SOCKET* client);
-        void acceptClient(void);
-        void sendToClient(const unsigned int client, const char* message);
-        void receive(int clientSocket);
+        void closeSockets(void);
+        int acceptClient(void);
+        void sendToClient(const SOCKET* client, const char* message);
+        void receive(SOCKET* clientSocket);
 };
 
 #endif // TWITTERSERVER_H_INCLUDED

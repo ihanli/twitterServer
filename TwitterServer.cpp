@@ -3,49 +3,30 @@
 TwitterServer::TwitterServer(const unsigned short port, const unsigned int size, const int af, const WORD version, const int type, const int protocol) :
                socketCreator(version, type, protocol), bufferSize(size)
 {
-    activeClients = 0;
-    comSocket = 0;
-    shutdownServer = false;
-	closeConnection = false;
-
-	FD_ZERO(&workingActionFlag);
-    FD_ZERO(&mainActionFlag);
-
-
     try
     {
         socketCreator.createSocket(&requestSocket, af);
-        MAXCLIENTS = requestSocket;
+
+        for(int i = 0;i < MAXCLIENTS;i++)
+		{
+			clients[i] = INVALID_SOCKET;
+		}
     }
     catch(unsigned char* e)
     {
         printf("%c", *e);
     }
-
-    FD_SET(requestSocket, &mainActionFlag);
 }
 
 TwitterServer::~TwitterServer(void)
 {
-	closeRequestSocket();
-
-	if(MAXCLIENTS > 0)
-	{
-		for(unsigned int currentClient = 0;currentClient <= MAXCLIENTS;currentClient++)
-		{
-			closeSockets(&currentClient);
-		}
-	}
-
+	closeSockets();
 	WSACleanup();
 }
 
 void TwitterServer::configServer(const unsigned short port, const int af)
 {
     int errorCode;
-
-    timeout.tv_sec = 300;
-    timeout.tv_usec = 0;
 
     memset(&localhost, 0, sizeof(SOCKADDR_IN));
     localhost.sin_family = af;
@@ -85,112 +66,105 @@ void TwitterServer::configServer(const unsigned short port, const int af)
 
 void TwitterServer::clientListener(void)
 {
-	memcpy(&workingActionFlag, &mainActionFlag, sizeof(mainActionFlag));
+	int errorCode;
 
-    activeClients = select(340, &workingActionFlag, NULL, NULL, 0);
+	FD_ZERO(&mainActionFlag);
+	FD_SET(requestSocket, &mainActionFlag);
 
-    if(activeClients == SOCKET_ERROR)
-    {
-        throw "\nFAIL: Something went wrong with SELECT!";
-    }
-    else if(activeClients == 0)
-    {
-        throw "\nFAIL: Connection timed out!";
-    }
-    else
-    {
-    	for(unsigned int currentClient = 0;currentClient <= MAXCLIENTS && activeClients > 0;currentClient++)
-    	{
-			if(FD_ISSET(currentClient, &workingActionFlag))
+	for(int i = 0; i < MAXCLIENTS;i++)
+	{
+		if(clients[i] != INVALID_SOCKET)
+		{
+			FD_SET(clients[i], &mainActionFlag);
+		}
+	}
+
+	errorCode = select(0, &mainActionFlag, NULL, NULL, 0);
+
+	if(errorCode == SOCKET_ERROR)
+	{
+		throw "\nFAIL: Something went wrong with SELECT!";
+	}
+
+	if(FD_ISSET(requestSocket, &mainActionFlag))
+	{
+		for(int i = 0;i < MAXCLIENTS;i++)
+		{
+			if(clients[i] == INVALID_SOCKET)
 			{
-				activeClients--;
-
-				if(currentClient == requestSocket)
+				try
 				{
-					printf("\nListening socket is readable...");
+					clients[i] = acceptClient();
+				}
+				catch(const char* e)
+				{
+					printf("%c", *e);
+				}
 
-					while(comSocket != -1)
+				break;
+			}
+		}
+	}
+
+	for(int i = 0;i < MAXCLIENTS;i++)
+	{
+		if(clients[i] != INVALID_SOCKET)
+		{
+			if(FD_ISSET(clients[i], &mainActionFlag))
+			{
+				try
+				{
+					//TODO: analyse commands from clients
+
+					receive(&clients[i]);
+
+					printf("\nClient said: %c\n", *clientMessage);
+
+					try
 					{
-						try
-						{
-							acceptClient();
-							FD_SET(comSocket, &workingActionFlag);
-
-							if(comSocket > MAXCLIENTS)
-							{
-								MAXCLIENTS = comSocket;
-							}
-						}
-						catch(const char* e)
-						{
-							if(!strcmp(e,"\nFAIL: No clients left"))
-							{
-								shutdownServer = true;
-							}
-							else
-							{
-								break;
-							}
-						}
+						sendToClient(&clients[i], clientMessage);
+					}
+					catch(const char* e)
+					{
+						printf("%c", *e);
 					}
 				}
-				else
+				catch(const char* e)
 				{
-					printf("\nReading from client...");
-
-					while(true)
-					{
-						try
-						{
-							receive(currentClient);
-							sendToClient(currentClient, clientMessage);
-						}
-						catch(const char* e)
-						{
-							printf("%c", *e);
-							closeConnection = true;
-							break;
-						}
-					}
-
-					if(closeConnection)
-					{
-						closeSockets(&currentClient);
-					}
+					printf("%c", *e);
+					closesocket(clients[i]);
+					clients[i] = INVALID_SOCKET;
 				}
 			}
-    	}
-    }
+		}
+	}
 }
 
-void TwitterServer::acceptClient(void)
+int TwitterServer::acceptClient(void)
 {
+	int comSocket;
+
 	comSocket = accept(requestSocket, NULL, NULL);
 
-	if(comSocket == INVALID_SOCKET)
+	if(comSocket == SOCKET_ERROR)
 	{
-		if(errno != 140)
-		{
-			throw "\nFAIL: No clients left";
-		}
-		else
-		{
-			throw "\nFAIL: Couldn't connect client!";
-		}
+		throw "\nFAIL: Couldn't connect client!";
 	}
 	else
 	{
 		printf("\nSUCCESS: Connected with client!");
 	}
+
+	return comSocket;
 }
 
-void TwitterServer::sendToClient(const unsigned int client, const char* message)
+void TwitterServer::sendToClient(const SOCKET* client, const char* message)
 {
     //TODO: check if whole message was sent
 
     int errorCode;
 
-    errorCode = send(client, message, bufferSize, 0);
+    errorCode = send(*client, message, bufferSize, 0);
 
     if(errorCode == SOCKET_ERROR)
     {
@@ -198,19 +172,19 @@ void TwitterServer::sendToClient(const unsigned int client, const char* message)
     }
 }
 
-void TwitterServer::receive(int clientSocket)
+void TwitterServer::receive(SOCKET* clientSocket)
 {
     //TODO: check if we received the whole message
 
     int errorCode;
 
-    errorCode = recv(clientSocket, clientMessage, bufferSize, 0);
+    errorCode = recv(*clientSocket, clientMessage, bufferSize, 0);
 
     if(errorCode == 0)
     {
         throw "\nFAIL: Lost connection to client!";
     }
-    else if(errorCode == SOCKET_ERROR && errno != 140)
+    else if(errorCode == SOCKET_ERROR)
     {
         throw "\nFAIL: Unable to receive message!";
     }
@@ -228,16 +202,13 @@ void TwitterServer::closeRequestSocket(void) const
     WSACleanup();
 }
 
-void TwitterServer::closeSockets(SOCKET* client)
+void TwitterServer::closeSockets(void)
 {
-    closesocket(*client);
-	FD_CLR(*client, &mainActionFlag);
+    closesocket(requestSocket);
+	FD_ZERO(&mainActionFlag);
 
-	if(*client == MAXCLIENTS)
+	for(int i = 0;i < MAXCLIENTS;i++)
 	{
-		while(FD_ISSET(MAXCLIENTS, &mainActionFlag) == false)
-		{
-			MAXCLIENTS--;
-		}
+		closesocket(clients[i]);
 	}
 }
