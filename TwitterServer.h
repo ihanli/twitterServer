@@ -31,7 +31,9 @@ class TwitterServer
         void acceptClient(void);
         void sendToClient(const SOCKET* client, const char* message);
         void receive(SOCKET* clientSocket);
+
         void checkClientActivity(void);
+        void setClientToOffline(SOCKET* clientSocket);
 };
 
 #endif // TWITTERSERVER_H_INCLUDED
