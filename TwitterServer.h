@@ -2,7 +2,6 @@
 #define TWITTERSERVER_H_INCLUDED
 
 #include <windows.h>
-#include <string>
 #include "SocketBase.h"
 
 #define MAXCLIENTS 10
@@ -31,6 +30,9 @@ class TwitterServer
         void acceptClient(void);
         void sendToClient(const SOCKET* client, const char* message);
         void receive(SOCKET* clientSocket);
+
+
+		//Helper methods
 
         void checkClientActivity(void);
         void setClientToOffline(SOCKET* clientSocket);

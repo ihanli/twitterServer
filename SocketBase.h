@@ -1,10 +1,9 @@
 #ifndef SOCKETBASE_H_INCLUDED
 #define SOCKETBASE_H_INCLUDED
 
-#include <cstdio>
 #include <winsock2.h>
 #include "SocketBase.h"
-//#include "ExceptionTexter.h"
+#include "ExceptionTexter.h"
 
 class SocketBase
 {

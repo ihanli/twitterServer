@@ -5,15 +5,15 @@ using namespace std;
 
 int main()
 {
-	TwitterServer myServer;
+	TwitterServer myTwitterServer;
 
 	try
 	{
-		myServer.configServer();
+		myTwitterServer.configServer();
 
 		while(true)
 		{
-			myServer.clientListener();
+			myTwitterServer.clientListener();
 		}
 	}
 	catch(const char* failure)
