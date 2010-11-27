@@ -38,6 +38,7 @@ class TwitterServer
 
         void setClientToOnline(void);
         void setClientToOffline(SOCKET* clientSocket);
+        void sendLogo(const SOCKET* clientSocket);
 };
 
 #endif // TWITTERSERVER_H_INCLUDED

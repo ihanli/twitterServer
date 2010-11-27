@@ -114,9 +114,9 @@ void TwitterServer::clientListener(void)
 					printf("%s", failure.c_str());
 				}
 			}
-			catch(const char* failure)
+			catch(string failure)
 			{
-				printf("%s", failure);
+				printf("%s", failure.c_str());
 				setClientToOffline(&clients[i]);
 			}
 		}
@@ -194,6 +194,33 @@ void TwitterServer::setClientToOnline(void)
 		{
 			FD_SET(clients[i], &actionFlag);
 		}
+	}
+}
+
+void TwitterServer::sendLogo(const SOCKET* clientSocket)
+{
+	try
+	{
+		sendToClient(clientSocket, "\n............. ................. ........");
+		sendToClient(clientSocket, "\n.............................IIII.......");
+		sendToClient(clientSocket, "\n..................ZZ~......?IIIIII?.....");
+		sendToClient(clientSocket, "\n............:.I7=?+Z$$$7ZI7IIIII..,I:...");
+		sendToClient(clientSocket, "\n............,7+?IIII$$$$IIIIIIII,.III7,.");
+		sendToClient(clientSocket, "\n...............+?IIIIIIIIIIIIIIIIIII,...");
+		sendToClient(clientSocket, "\n..................I7IIIIIIIIIIIIIIII....");
+		sendToClient(clientSocket, "\n..................IIIIIIIIIII?+:,=I.....");
+		sendToClient(clientSocket, "\n...............=?IIIIIIIIIII:::::::.....");
+		sendToClient(clientSocket, "\n.,=........,=IIIIIIIIIIIII:::::,:,......");
+		sendToClient(clientSocket, "\n....~?I??IIIIIIIIIIIIIIII:::,:::........");
+		sendToClient(clientSocket, "\n.......+?IIIIIIIIIIIIIII:::::::.. ......");
+		sendToClient(clientSocket, "\n..........~IIIIIIIIIIIII:::::...........");
+		sendToClient(clientSocket, "\n................~?IIIIII=...............");
+		sendToClient(clientSocket, "\n........................................");
+		sendToClient(clientSocket, "\n............. ................. ........");
+	}
+	catch(string failure)
+	{
+		printf("%s", failure.c_str());
 	}
 }
 
