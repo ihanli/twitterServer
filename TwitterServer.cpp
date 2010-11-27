@@ -14,9 +14,9 @@ TwitterServer::TwitterServer(const unsigned short port) :
 			clients[i] = INVALID_SOCKET;
 		}
     }
-    catch(const char* failure)
+    catch(string failure)
     {
-        printf("%s", failure);
+        printf("%s", failure.c_str());
     }
 }
 
@@ -43,7 +43,7 @@ void TwitterServer::configServer(const unsigned short port)
     {
         closeRequestSocket();
 
-        throw "\nFAIL: Unable to bind socket!";
+        throw exceptionTexter("\nFAIL: Unable to bind socket! (Error Code: ", errorCode);
     }
     else
     {
@@ -58,7 +58,7 @@ void TwitterServer::configServer(const unsigned short port)
     {
         closeRequestSocket();
 
-        throw "\nFAIL: Unable to initiate listen mode!";
+        throw exceptionTexter("\nFAIL: Unable to initiate listen mode! (Error Code: ", errorCode);
     }
     else
     {
@@ -70,24 +70,24 @@ void TwitterServer::clientListener(void)
 {
 	int errorCode;
 
-	checkClientActivity();
+	setClientToOnline();
 
 	errorCode = select((unsigned int)requestSocket + MAXCLIENTS, &actionFlag, NULL, NULL, 0);
 
 	if(errorCode == SOCKET_ERROR)
 	{
-		throw "\nFAIL: Something went wrong with SELECT!";
+		throw exceptionTexter("\nFAIL: Something went wrong with SELECT! (Error Code: ", errorCode);
 	}
 
 	if(FD_ISSET(requestSocket, &actionFlag))
 	{
 		try
 		{
-			acceptClient();
+			acceptClient(errorCode);
 		}
-		catch(const char* failure)
+		catch(string failure)
 		{
-			printf("%s", failure);
+			printf("%s", failure.c_str());
 		}
 	}
 
@@ -101,21 +101,15 @@ void TwitterServer::clientListener(void)
 
 				receive(&clients[i]);
 
-				if(!strcmp(clientMessage, "offline"))
-				{
-					printf("\nClient %d went offline!\n", clients[i]);
-					setClientToOffline(&clients[i]);
-				}
-
-				printf("\nClient said: %c\n", *clientMessage);
+				printf("\nClient said: %s\n", clientMessage);
 
 				try
 				{
 					sendToClient(&clients[i], clientMessage);
 				}
-				catch(const char* failure)
+				catch(string failure)
 				{
-					printf("%s", failure);
+					printf("%s", failure.c_str());
 				}
 			}
 			catch(const char* failure)
@@ -127,9 +121,9 @@ void TwitterServer::clientListener(void)
 	}
 }
 
-void TwitterServer::acceptClient(void)
+void TwitterServer::acceptClient(int numberOfClients)
 {
-	for(int i = 0;i < MAXCLIENTS;i++)
+	for(int i = 0;i < numberOfClients;i++)
 	{
 		if(clients[i] == INVALID_SOCKET)
 		{
@@ -137,14 +131,12 @@ void TwitterServer::acceptClient(void)
 
 			if(clients[i] == INVALID_SOCKET)
 			{
-				throw "\nFAIL: Couldn't connect client!";
+				throw exceptionTexter("\nFAIL: Couldn't connect client! (socket ", clients[i]);
 			}
 			else
 			{
-				printf("\nSUCCESS: Connected with client!");
+				printf("\nSUCCESS: Connected with client! (socket %d)", clients[i]);
 			}
-
-			return;
 		}
 	}
 }
@@ -159,7 +151,7 @@ void TwitterServer::sendToClient(const SOCKET* client, const char* message)
 
     if(errorCode == SOCKET_ERROR)
     {
-        throw "\nFAIL: Unable to send message!";
+        throw exceptionTexter("\nFAIL: Unable to send message! (Error Code: ", errorCode);
     }
 }
 
@@ -173,11 +165,11 @@ void TwitterServer::receive(SOCKET* clientSocket)
 
     if(errorCode == 0)
     {
-        throw "\nFAIL: Lost connection to client!";
+        throw exceptionTexter("\nFAIL: Lost connection to client! (Error Code: ", errorCode);
     }
-    else if(errorCode == SOCKET_ERROR)
+    else if(errorCode == SOCKET_ERROR || !strcmp("offline", clientMessage) || !strcmp((char*)2686760, clientMessage))
     {
-        throw "\nClient went offline!";
+        throw exceptionTexter("\nClient went offline! (socket ", *clientSocket);
     }
 }
 
@@ -190,7 +182,7 @@ void TwitterServer::setClientToOffline(SOCKET* clientSocket)
 	FD_SET(requestSocket, &actionFlag);
 }
 
-void TwitterServer::checkClientActivity(void)
+void TwitterServer::setClientToOnline(void)
 {
 	for(int i = 0; i < MAXCLIENTS;i++)
 	{

@@ -1,13 +1,12 @@
 #include "ExceptionTexter.h"
 
-char* exceptionTexter(const char* exceptionText, int errorCode)
+const char* exceptionTexter(const char* exceptionText, const int errorCode)
 {
-	char* finalException;
-	string foo;
+	ostringstream finalException;
 
-	//TODO: append integer to string of chars
+	finalException << exceptionText;
+	finalException << errorCode;
+	finalException << ")";
 
-	sscanf(finalException, "%s (Error Code: %d)", exceptionText, &errorCode);
-
-	return finalException;
+	return finalException.str().c_str();
 }

@@ -27,14 +27,14 @@ class TwitterServer
 
         void closeRequestSocket(void) const;
         void closeSockets(void);
-        void acceptClient(void);
+        void acceptClient(int numberOfClients);
         void sendToClient(const SOCKET* client, const char* message);
         void receive(SOCKET* clientSocket);
 
 
 		//Helper methods
 
-        void checkClientActivity(void);
+        void setClientToOnline(void);
         void setClientToOffline(SOCKET* clientSocket);
 };
 

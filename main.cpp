@@ -16,9 +16,9 @@ int main()
 			myTwitterServer.clientListener();
 		}
 	}
-	catch(const char* failure)
+	catch(string failure)
 	{
-		printf("%s", failure);
+		printf("%s", failure.c_str());
 	}
 
     return 0;
