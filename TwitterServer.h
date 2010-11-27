@@ -1,6 +1,7 @@
 #ifndef TWITTERSERVER_H_INCLUDED
 #define TWITTERSERVER_H_INCLUDED
 
+#include <map>
 #include <windows.h>
 #include "SocketBase.h"
 
@@ -19,7 +20,8 @@ class TwitterServer
 
     private:
         SOCKET requestSocket;
-        SOCKET clients[MAXCLIENTS];
+        map<unsigned int, SOCKET> clients;
+        map<SOCKET, string> tweeter;
         SOCKADDR_IN localhost;
         FD_SET actionFlag;
         SocketBase socketCreator;

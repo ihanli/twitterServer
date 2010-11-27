@@ -1,8 +1,9 @@
 # depslib dependency file v1.0
-1290875080 source:d:\fhs\ws10\multimediale netzwerke\twitterserver\twitterserver.cpp
+1290882530 source:d:\fhs\ws10\multimediale netzwerke\twitterserver\twitterserver.cpp
 	"TwitterServer.h"
 
-1290875979 d:\fhs\ws10\multimediale netzwerke\twitterserver\twitterserver.h
+1290881669 d:\fhs\ws10\multimediale netzwerke\twitterserver\twitterserver.h
+	<map>
 	<windows.h>
 	"SocketBase.h"
 

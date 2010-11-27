@@ -9,10 +9,12 @@ TwitterServer::TwitterServer(const unsigned short port) :
         FD_ZERO(&actionFlag);
 		FD_SET(requestSocket, &actionFlag);
 
-        for(int i = 0;i < MAXCLIENTS;i++)
+        for(unsigned int i = 0;i < MAXCLIENTS;i++)
 		{
 			clients[i] = INVALID_SOCKET;
 		}
+
+//		clientMessage = NULL;
     }
     catch(string failure)
     {
@@ -163,11 +165,13 @@ void TwitterServer::receive(SOCKET* clientSocket)
 
     errorCode = recv(*clientSocket, clientMessage, BUFFERSIZE, 0);
 
+	clientMessage[errorCode] = '\0';
+
     if(errorCode == 0)
     {
         throw exceptionTexter("\nFAIL: Lost connection to client! (Error Code: ", errorCode);
     }
-    else if(errorCode == SOCKET_ERROR || !strcmp("offline", clientMessage) || !strcmp((char*)2686760, clientMessage))
+    else if(errorCode == SOCKET_ERROR || !strcmp("logout", clientMessage))
     {
         throw exceptionTexter("\nClient went offline! (socket ", *clientSocket);
     }
