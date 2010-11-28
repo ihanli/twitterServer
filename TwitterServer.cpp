@@ -121,25 +121,84 @@ void TwitterServer::clientListener(void)
 
 void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocket)
 {
+	string messageForClient;
+
 	if(!strcmp(command[0], "login"))
 	{
 		logInTweeter(clientSocket, command[1]);
 	}
-	else if(!strcmp(command[0], "logout"))
+	else if(loggedIn(clientSocket))
 	{
-		logOutTweeter(clientSocket);
-	}
-	else if(!strcmp(command[0], "whoami?"))
-	{
-		sendNameOfTweeter(clientSocket);
-	}
-	else if(!strcmp(command[0], "follow"))
-	{
-		sendNameOfTweeter(clientSocket);
+		if(!strcmp(command[0], "logout"))
+		{
+			logOutTweeter(clientSocket);
+		}
+		else if(!strcmp(command[0], "whoami?"))
+		{
+			sendNameOfTweeter(clientSocket);
+		}
+		else if(!strcmp(command[0], "follow"))
+		{
+			followTweeter(clientSocket, command[1]);
+		}
+		else
+		{
+			newTweet(clientSocket, clientMessage);
+		}
 	}
 	else
 	{
-		newTweet(clientSocket, clientMessage);
+		try
+		{
+			sendToClient(&clientSocket, "you have to login!");
+		}
+		catch(string failure)
+		{
+			printf("%s", failure.c_str());
+		}
+	}
+}
+
+SOCKET TwitterServer::getSocketByTweeter(const string name)
+{
+	map<SOCKET, string>::iterator it = tweeter.begin();
+
+	while(it != tweeter.end())
+	{
+		if(it->second == name)
+		{
+			return it->first;
+		}
+
+		it++;
+	}
+
+	return INVALID_SOCKET;
+}
+
+void TwitterServer::followTweeter(const SOCKET follower, const string followedTweeter)
+{
+	string messageForClient;
+	SOCKET tweeterSocket = getSocketByTweeter(followedTweeter);
+
+	if(tweeterSocket != INVALID_SOCKET && loggedIn(tweeterSocket))
+	{
+		abonnement.insert( pair<SOCKET, SOCKET>(follower, tweeterSocket) );
+
+		messageForClient = tweeter[follower] + " is now following " + tweeter[tweeterSocket] + "!";
+	}
+	else
+	{
+		messageForClient = "the tweeter you want to follow, doesn't exist or is not logged in!";
+	}
+
+	try
+	{
+		sendToClient(&follower, messageForClient.c_str());
+	}
+	catch(string failure)
+	{
+		printf("%s", failure.c_str());
 	}
 }
 
@@ -157,22 +216,11 @@ bool TwitterServer::loggedIn(const SOCKET clientSocket)
 
 void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 {
-	string messageForClient;
-
-	if(loggedIn(clientSocket))
-	{
-		tweet.insert( pair<string, string>(tweeter[clientSocket], text) );
-
-		messageForClient = tweet.find(tweeter[clientSocket])->second;
-	}
-	else
-	{
-		messageForClient = "wanna tweet? got to login first!";
-	}
+	tweet.insert( pair<string, string>(tweeter[clientSocket], text) );
 
 	try
 	{
-		sendToClient(&clientSocket, messageForClient.c_str());
+		sendToClient(&clientSocket, tweet.find(tweeter[clientSocket])->second.c_str());
 	}
 	catch(string failure)
 	{

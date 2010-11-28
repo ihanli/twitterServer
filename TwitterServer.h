@@ -23,6 +23,7 @@ class TwitterServer
         map<unsigned int, SOCKET> clients;
         map<SOCKET, string> tweeter;
         multimap<string, string> tweet;
+        multimap<SOCKET, SOCKET> abonnement;
         SOCKADDR_IN localhost;
         FD_SET actionFlag;
         SocketBase socketCreator;
@@ -34,9 +35,10 @@ class TwitterServer
         void sendToClient(const SOCKET* client, const char* message);
         void receive(const SOCKET* clientSocket);
 
-
 		//Helper methods
 
+		SOCKET getSocketByTweeter(const string name);
+		void followTweeter(const SOCKET follower, const string followedTweeter);
 		void commandInterpreter(char* command[], const SOCKET clientSocket);
 		bool loggedIn(const SOCKET clientSocket);
 		void newTweet(const SOCKET clientSocket, const string text);
