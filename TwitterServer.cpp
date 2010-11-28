@@ -69,6 +69,9 @@ void TwitterServer::configServer(const unsigned short port)
 void TwitterServer::clientListener(void)
 {
 	int errorCode;
+	unsigned int space;
+	char* command;
+	char* attribute;
 
 	setClientToOnline();
 
@@ -101,16 +104,44 @@ void TwitterServer::clientListener(void)
 
 				receive(&clients[i]);
 
-				printf("\nClient said: %s\n", clientMessage);
+				space = strcspn(clientMessage, " ");
 
-				try
+				if(space <= strlen(clientMessage))
 				{
-					sendToClient(&clients[i], clientMessage);
+					command = new char[space];
+					attribute = new char[strlen(clientMessage) - space];
+
+					strncpy(command, clientMessage, space);
+
+					for(unsigned int pos = space;pos < strlen(clientMessage);pos++)
+					{
+						attribute[pos - space] = clientMessage[pos];
+					}
 				}
-				catch(string failure)
+
+				if(!strcmp(command, "login"))
 				{
-					printf("%s", failure.c_str());
+					logInTweeter(clients[i], attribute);
 				}
+				else if(!strcmp(clientMessage, "logout"))
+				{
+					logOutTweeter(clients[i]);
+				}
+				else if(!strcmp(clientMessage, "whoami?"))
+				{
+					sendNameOfTweeter(clients[i]);
+				}
+
+//				printf("\nClient said: %s\n", clientMessage);
+//
+//				try
+//				{
+//					sendToClient(&clients[i], tweeter[clients[i]].c_str());
+//				}
+//				catch(string failure)
+//				{
+//					printf("%s", failure.c_str());
+//				}
 			}
 			catch(const char* failure)
 			{
@@ -118,6 +149,49 @@ void TwitterServer::clientListener(void)
 				setClientToOffline(&clients[i]);
 			}
 		}
+	}
+
+	delete [] command;
+	delete [] attribute;
+}
+
+void TwitterServer::logOutTweeter(const SOCKET clientSocket)
+{
+	tweeter.erase(clientSocket);
+
+	try
+	{
+		sendToClient(&clientSocket, "oooh, the bird flew away!");
+	}
+	catch(string failure)
+	{
+		printf("%s", failure.c_str());
+	}
+}
+
+void TwitterServer::sendNameOfTweeter(const SOCKET clientSocket)
+{
+	try
+	{
+		sendToClient(&clientSocket, tweeter[clientSocket].c_str());
+	}
+	catch(string failure)
+	{
+		printf("%s", failure.c_str());
+	}
+}
+
+void TwitterServer::logInTweeter(const SOCKET clientSocket, const string name)
+{
+	tweeter[clientSocket] = name;
+
+	try
+	{
+		sendToClient(&clientSocket, "hello bird!");
+	}
+	catch(string failure)
+	{
+		printf("%s", failure.c_str());
 	}
 }
 
@@ -155,7 +229,7 @@ void TwitterServer::sendToClient(const SOCKET* client, const char* message)
     }
 }
 
-void TwitterServer::receive(SOCKET* clientSocket)
+void TwitterServer::receive(const SOCKET* clientSocket)
 {
     //TODO: check if we received the whole message
 

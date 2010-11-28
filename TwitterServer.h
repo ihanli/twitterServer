@@ -25,17 +25,20 @@ class TwitterServer
         SOCKADDR_IN localhost;
         FD_SET actionFlag;
         SocketBase socketCreator;
-        char *clientMessage;
+        char* clientMessage;
 
         void closeRequestSocket(void) const;
         void closeSockets(void);
         void acceptClient(int numberOfClients);
         void sendToClient(const SOCKET* client, const char* message);
-        void receive(SOCKET* clientSocket);
+        void receive(const SOCKET* clientSocket);
 
 
 		//Helper methods
 
+		void logInTweeter(const SOCKET clientSocket, const string name);
+		void logOutTweeter(const SOCKET clientSocket);
+		void sendNameOfTweeter(const SOCKET clientSocket);
         void setClientToOnline(void);
         void setClientToOffline(SOCKET* clientSocket);
 };
