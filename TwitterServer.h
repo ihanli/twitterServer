@@ -11,7 +11,7 @@
 #define TWITTERSERVER_H_INCLUDED
 
 #include <map>
-#include <windows.h>
+//#include <windows.h>
 #include "SocketBase.h"
 
 #define MAXCLIENTS 10
