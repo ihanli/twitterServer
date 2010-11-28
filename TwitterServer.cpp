@@ -69,9 +69,7 @@ void TwitterServer::configServer(const unsigned short port)
 void TwitterServer::clientListener(void)
 {
 	int errorCode;
-	unsigned int space;
-	char* command;
-	char* attribute;
+	char* command[2];
 
 	setClientToOnline();
 
@@ -104,44 +102,23 @@ void TwitterServer::clientListener(void)
 
 				receive(&clients[i]);
 
-				space = strcspn(clientMessage, " ");
+				makeSubString(command);
 
-				if(space <= strlen(clientMessage))
+				if(!strcmp(command[0], "login"))
 				{
-					command = new char[space];
-					attribute = new char[strlen(clientMessage) - space];
-
-					strncpy(command, clientMessage, space);
-
-					for(unsigned int pos = space;pos < strlen(clientMessage);pos++)
-					{
-						attribute[pos - space] = clientMessage[pos];
-					}
+					logInTweeter(clients[i], command[1]);
 				}
-
-				if(!strcmp(command, "login"))
-				{
-					logInTweeter(clients[i], attribute);
-				}
-				else if(!strcmp(clientMessage, "logout"))
+				else if(!strcmp(command[0], "logout"))
 				{
 					logOutTweeter(clients[i]);
 				}
-				else if(!strcmp(clientMessage, "whoami?"))
+				else if(!strcmp(command[0], "whoami?"))
 				{
 					sendNameOfTweeter(clients[i]);
 				}
 
-//				printf("\nClient said: %s\n", clientMessage);
-//
-//				try
-//				{
-//					sendToClient(&clients[i], tweeter[clients[i]].c_str());
-//				}
-//				catch(string failure)
-//				{
-//					printf("%s", failure.c_str());
-//				}
+				delete [] command[1];
+				delete [] command[0];
 			}
 			catch(const char* failure)
 			{
@@ -150,9 +127,29 @@ void TwitterServer::clientListener(void)
 			}
 		}
 	}
+}
 
-	delete [] command;
-	delete [] attribute;
+void TwitterServer::makeSubString(char* command[])
+{
+	unsigned int space;
+
+	space = strcspn(clientMessage, " ");
+
+	command[0] = new char[space];
+	strncpy(command[0], clientMessage, space);
+	command[0][space] = '\0';
+
+	if(space <= strlen(clientMessage))
+	{
+		command[1] = new char[strlen(clientMessage) - space];
+
+		for(unsigned int pos = space;pos < strlen(clientMessage);pos++)
+		{
+			command[1][pos - space] = clientMessage[pos];
+		}
+
+		//command[1][strlen(clientMessage)] = '\0';
+	}
 }
 
 void TwitterServer::logOutTweeter(const SOCKET clientSocket)
