@@ -1,3 +1,12 @@
+/*###############################
+# FH Salzburg                   #
+# WS2010 MMT-B2009              #
+# Multimediale Netzwerke        #
+# Uebungsprojekt                #
+# Fritsch Andreas, Hanli Ismail #
+# Sun, 28.11.2010 22:00         #
+###############################*/
+
 #include "SocketBase.h"
 
 SocketBase::SocketBase(const WORD clientSocketVersion, const int type, const int protocol) :

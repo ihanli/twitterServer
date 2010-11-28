@@ -1,8 +1,16 @@
+/*###############################
+# FH Salzburg                   #
+# WS2010 MMT-B2009              #
+# Multimediale Netzwerke        #
+# Uebungsprojekt                #
+# Fritsch Andreas, Hanli Ismail #
+# Sun, 28.11.2010 22:00         #
+###############################*/
+
 #ifndef SOCKETBASE_H_INCLUDED
 #define SOCKETBASE_H_INCLUDED
 
 #include <winsock2.h>
-#include "SocketBase.h"
 #include "ExceptionTexter.h"
 
 class SocketBase

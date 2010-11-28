@@ -1,23 +1,32 @@
+/*###############################
+# FH Salzburg                   #
+# WS2010 MMT-B2009              #
+# Multimediale Netzwerke        #
+# Uebungsprojekt                #
+# Fritsch Andreas, Hanli Ismail #
+# Sun, 28.11.2010 22:00         #
+###############################*/
+
 #include "TwitterServer.h"
 
 TwitterServer::TwitterServer(const unsigned short port) :
-               socketCreator()
+			   socketCreator()
 {
-    try
-    {
-        socketCreator.createSocket(&requestSocket, AF_INET);
-        FD_ZERO(&actionFlag);
+	try
+	{
+		socketCreator.createSocket(&requestSocket, AF_INET);
+		FD_ZERO(&actionFlag);
 		FD_SET(requestSocket, &actionFlag);
 
-        for(int i = 0;i < MAXCLIENTS;i++)
+		for(int i = 0;i < MAXCLIENTS;i++)
 		{
 			clients[i] = INVALID_SOCKET;
 		}
-    }
-    catch(string failure)
-    {
-        printf("%s", failure.c_str());
-    }
+	}
+	catch(string failure)
+	{
+		printf("%s", failure.c_str());
+	}
 }
 
 TwitterServer::~TwitterServer(void)
@@ -28,42 +37,42 @@ TwitterServer::~TwitterServer(void)
 
 void TwitterServer::configServer(const unsigned short port)
 {
-    int errorCode;
+	int errorCode;
 
-    memset(&localhost, 0, sizeof(SOCKADDR_IN));
-    localhost.sin_family = AF_INET;
-    localhost.sin_port = htons(port);
-    localhost.sin_addr.s_addr = ADDR_ANY;
+	memset(&localhost, 0, sizeof(SOCKADDR_IN));
+	localhost.sin_family = AF_INET;
+	localhost.sin_port = htons(port);
+	localhost.sin_addr.s_addr = ADDR_ANY;
 
-    printf("\nBinding socket...");
+	printf("\nBinding socket...");
 
-    errorCode = bind(requestSocket, (SOCKADDR*)&localhost, sizeof(SOCKADDR_IN));
+	errorCode = bind(requestSocket, (SOCKADDR*)&localhost, sizeof(SOCKADDR_IN));
 
-    if(errorCode == SOCKET_ERROR)
-    {
-        closeRequestSocket();
+	if(errorCode == SOCKET_ERROR)
+	{
+		closeRequestSocket();
 
-        throw exceptionTexter("\nFAIL: Unable to bind socket! (Error Code: ", errorCode);
-    }
-    else
-    {
-        printf("\nSUCCESS: Bound socket to port %u!", port);
-    }
+		throw exceptionTexter("\nFAIL: Unable to bind socket! (Error Code: ", errorCode);
+	}
+	else
+	{
+		printf("\nSUCCESS: Bound socket to port %u!", port);
+	}
 
-    printf("\nStarting listen mode...");
+	printf("\nStarting listen mode...");
 
-    errorCode = listen(requestSocket, 10);
+	errorCode = listen(requestSocket, 10);
 
-    if(errorCode == SOCKET_ERROR)
-    {
-        closeRequestSocket();
+	if(errorCode == SOCKET_ERROR)
+	{
+		closeRequestSocket();
 
-        throw exceptionTexter("\nFAIL: Unable to initiate listen mode! (Error Code: ", errorCode);
-    }
-    else
-    {
-        printf("\nSUCCESS: Listen mode started!");
-    }
+		throw exceptionTexter("\nFAIL: Unable to initiate listen mode! (Error Code: ", errorCode);
+	}
+	else
+	{
+		printf("\nSUCCESS: Listen mode started!");
+	}
 }
 
 void TwitterServer::clientListener(void)
@@ -317,34 +326,34 @@ void TwitterServer::acceptClient(int numberOfClients)
 
 void TwitterServer::sendToClient(const SOCKET* client, const char* message)
 {
-    //TODO: check if whole message was sent
+	//TODO: check if whole message was sent
 
-    int errorCode;
+	int errorCode;
 
-    errorCode = send(*client, message, BUFFERSIZE, 0);
+	errorCode = send(*client, message, BUFFERSIZE, 0);
 
-    if(errorCode == SOCKET_ERROR)
-    {
-        throw exceptionTexter("\nFAIL: Unable to send message! (Error Code: ", errorCode);
-    }
+	if(errorCode == SOCKET_ERROR)
+	{
+		throw exceptionTexter("\nFAIL: Unable to send message! (Error Code: ", errorCode);
+	}
 }
 
 void TwitterServer::receive(const SOCKET* clientSocket)
 {
-    //TODO: check if we received the whole message
+	//TODO: check if we received the whole message
 
-    int errorCode;
+	int errorCode;
 
-    errorCode = recv(*clientSocket, clientMessage, BUFFERSIZE, 0);
+	errorCode = recv(*clientSocket, clientMessage, BUFFERSIZE, 0);
 
-    if(errorCode == 0)
-    {
-        throw exceptionTexter("\nFAIL: Lost connection to client! (Error Code: ", errorCode);
-    }
-    else if(errorCode == SOCKET_ERROR || !strcmp("offline", clientMessage))
-    {
-        throw exceptionTexter("\nClient went offline! (socket ", *clientSocket);
-    }
+	if(errorCode == 0)
+	{
+		throw exceptionTexter("\nFAIL: Lost connection to client! (Error Code: ", errorCode);
+	}
+	else if(errorCode == SOCKET_ERROR || !strcmp("offline", clientMessage))
+	{
+		throw exceptionTexter("\nClient went offline! (socket ", *clientSocket);
+	}
 }
 
 void TwitterServer::setClientToOffline(SOCKET* clientSocket)
@@ -369,13 +378,13 @@ void TwitterServer::setClientToOnline(void)
 
 void TwitterServer::closeRequestSocket(void) const
 {
-    closesocket(requestSocket);
-    WSACleanup();
+	closesocket(requestSocket);
+	WSACleanup();
 }
 
 void TwitterServer::closeSockets(void)
 {
-    closesocket(requestSocket);
+	closesocket(requestSocket);
 	FD_ZERO(&actionFlag);
 
 	for(int i = 0;i < MAXCLIENTS;i++)
