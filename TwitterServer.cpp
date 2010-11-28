@@ -99,6 +99,8 @@ void TwitterServer::clientListener(void)
 			try
 			{
 				//TODO: analyse commands from clients
+				//FIXME: tweeter is not allowed to tweet, if not logged in
+				//FIXME: escaping character for command
 
 				receive(&clients[i]);
 
@@ -116,6 +118,10 @@ void TwitterServer::clientListener(void)
 				{
 					sendNameOfTweeter(clients[i]);
 				}
+				else
+				{
+					newTweet(clients[i], clientMessage);
+				}
 
 				delete [] command[1];
 				delete [] command[0];
@@ -126,6 +132,20 @@ void TwitterServer::clientListener(void)
 				setClientToOffline(&clients[i]);
 			}
 		}
+	}
+}
+
+void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
+{
+	tweet.insert( pair<string, string>(tweeter[clientSocket], text) );
+
+	try
+	{
+		sendToClient(&clientSocket, tweet.find(tweeter[clientSocket])->second.c_str());
+	}
+	catch(string failure)
+	{
+		printf("%s", failure.c_str());
 	}
 }
 
