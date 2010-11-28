@@ -99,7 +99,6 @@ void TwitterServer::clientListener(void)
 			try
 			{
 				//TODO: analyse commands from clients
-				//FIXME: tweeter is not allowed to tweet, if not logged in
 				//FIXME: escaping character for command
 
 				receive(&clients[i]);
@@ -135,13 +134,36 @@ void TwitterServer::clientListener(void)
 	}
 }
 
+bool TwitterServer::loggedIn(const SOCKET clientSocket)
+{
+	if(tweeter.find(clientSocket) == tweeter.end())
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
 void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 {
-	tweet.insert( pair<string, string>(tweeter[clientSocket], text) );
+	string messageForClient;
+
+	if(loggedIn(clientSocket))
+	{
+		tweet.insert( pair<string, string>(tweeter[clientSocket], text) );
+
+		messageForClient = tweet.find(tweeter[clientSocket])->second;
+	}
+	else
+	{
+		messageForClient = "wanna tweet? got to login first!";
+	}
 
 	try
 	{
-		sendToClient(&clientSocket, tweet.find(tweeter[clientSocket])->second.c_str());
+		sendToClient(&clientSocket, messageForClient.c_str());
 	}
 	catch(string failure)
 	{
