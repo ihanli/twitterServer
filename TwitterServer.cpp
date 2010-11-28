@@ -105,22 +105,7 @@ void TwitterServer::clientListener(void)
 
 				makeSubString(command);
 
-				if(!strcmp(command[0], "login"))
-				{
-					logInTweeter(clients[i], command[1]);
-				}
-				else if(!strcmp(command[0], "logout"))
-				{
-					logOutTweeter(clients[i]);
-				}
-				else if(!strcmp(command[0], "whoami?"))
-				{
-					sendNameOfTweeter(clients[i]);
-				}
-				else
-				{
-					newTweet(clients[i], clientMessage);
-				}
+				commandInterpreter(command, clients[i]);
 
 				delete [] command[1];
 				delete [] command[0];
@@ -131,6 +116,30 @@ void TwitterServer::clientListener(void)
 				setClientToOffline(&clients[i]);
 			}
 		}
+	}
+}
+
+void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocket)
+{
+	if(!strcmp(command[0], "login"))
+	{
+		logInTweeter(clientSocket, command[1]);
+	}
+	else if(!strcmp(command[0], "logout"))
+	{
+		logOutTweeter(clientSocket);
+	}
+	else if(!strcmp(command[0], "whoami?"))
+	{
+		sendNameOfTweeter(clientSocket);
+	}
+	else if(!strcmp(command[0], "follow"))
+	{
+		sendNameOfTweeter(clientSocket);
+	}
+	else
+	{
+		newTweet(clientSocket, clientMessage);
 	}
 }
 
@@ -191,6 +200,10 @@ void TwitterServer::makeSubString(char* command[])
 		}
 
 		//command[1][strlen(clientMessage)] = '\0';
+	}
+	else
+	{
+		command[1] = NULL;
 	}
 }
 

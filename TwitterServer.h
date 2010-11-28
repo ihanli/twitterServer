@@ -37,6 +37,7 @@ class TwitterServer
 
 		//Helper methods
 
+		void commandInterpreter(char* command[], const SOCKET clientSocket);
 		bool loggedIn(const SOCKET clientSocket);
 		void newTweet(const SOCKET clientSocket, const string text);
 		void makeSubString(char* command[]);
