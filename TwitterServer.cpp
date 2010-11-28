@@ -9,12 +9,10 @@ TwitterServer::TwitterServer(const unsigned short port) :
         FD_ZERO(&actionFlag);
 		FD_SET(requestSocket, &actionFlag);
 
-        for(unsigned int i = 0;i < MAXCLIENTS;i++)
+        for(int i = 0;i < MAXCLIENTS;i++)
 		{
 			clients[i] = INVALID_SOCKET;
 		}
-
-//		clientMessage = NULL;
     }
     catch(string failure)
     {
@@ -114,9 +112,9 @@ void TwitterServer::clientListener(void)
 					printf("%s", failure.c_str());
 				}
 			}
-			catch(string failure)
+			catch(const char* failure)
 			{
-				printf("%s", failure.c_str());
+				printf("%s", failure);
 				setClientToOffline(&clients[i]);
 			}
 		}
@@ -165,13 +163,11 @@ void TwitterServer::receive(SOCKET* clientSocket)
 
     errorCode = recv(*clientSocket, clientMessage, BUFFERSIZE, 0);
 
-	clientMessage[errorCode] = '\0';
-
     if(errorCode == 0)
     {
         throw exceptionTexter("\nFAIL: Lost connection to client! (Error Code: ", errorCode);
     }
-    else if(errorCode == SOCKET_ERROR || !strcmp("logout", clientMessage))
+    else if(errorCode == SOCKET_ERROR || !strcmp("offline", clientMessage))
     {
         throw exceptionTexter("\nClient went offline! (socket ", *clientSocket);
     }
@@ -194,33 +190,6 @@ void TwitterServer::setClientToOnline(void)
 		{
 			FD_SET(clients[i], &actionFlag);
 		}
-	}
-}
-
-void TwitterServer::sendLogo(const SOCKET* clientSocket)
-{
-	try
-	{
-		sendToClient(clientSocket, "\n............. ................. ........");
-		sendToClient(clientSocket, "\n.............................IIII.......");
-		sendToClient(clientSocket, "\n..................ZZ~......?IIIIII?.....");
-		sendToClient(clientSocket, "\n............:.I7=?+Z$$$7ZI7IIIII..,I:...");
-		sendToClient(clientSocket, "\n............,7+?IIII$$$$IIIIIIII,.III7,.");
-		sendToClient(clientSocket, "\n...............+?IIIIIIIIIIIIIIIIIII,...");
-		sendToClient(clientSocket, "\n..................I7IIIIIIIIIIIIIIII....");
-		sendToClient(clientSocket, "\n..................IIIIIIIIIII?+:,=I.....");
-		sendToClient(clientSocket, "\n...............=?IIIIIIIIIII:::::::.....");
-		sendToClient(clientSocket, "\n.,=........,=IIIIIIIIIIIII:::::,:,......");
-		sendToClient(clientSocket, "\n....~?I??IIIIIIIIIIIIIIII:::,:::........");
-		sendToClient(clientSocket, "\n.......+?IIIIIIIIIIIIIII:::::::.. ......");
-		sendToClient(clientSocket, "\n..........~IIIIIIIIIIIII:::::...........");
-		sendToClient(clientSocket, "\n................~?IIIIII=...............");
-		sendToClient(clientSocket, "\n........................................");
-		sendToClient(clientSocket, "\n............. ................. ........");
-	}
-	catch(string failure)
-	{
-		printf("%s", failure.c_str());
 	}
 }
 
