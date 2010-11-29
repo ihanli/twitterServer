@@ -246,7 +246,7 @@ void TwitterServer::makeSubString(char* command[])
 
 void TwitterServer::logOutTweeter(const SOCKET clientSocket)
 {
-	tweeter.erase(clientSocket);	// erase tweeter socket from map
+	//tweeter.erase(clientSocket);	// erase tweeter socket from map
 
 	try
 	{
