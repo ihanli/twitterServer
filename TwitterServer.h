@@ -11,11 +11,11 @@
 #define TWITTERSERVER_H_INCLUDED
 
 #include <map>
-//#include <windows.h>
+//#include <windows.h>			// not needed in visual studio
 #include "SocketBase.h"
 
-#define MAXCLIENTS 10
-#define BUFFERSIZE 140
+#define MAXCLIENTS 10			// how many clients the server can handle
+#define BUFFERSIZE 140			// maximum lenghth of the tweets
 
 using namespace std;
 
@@ -24,7 +24,7 @@ class TwitterServer
 	public:
 		TwitterServer(const unsigned short port = 3000);
 		~TwitterServer();
-		void configServer(const unsigned short port = 3000);
+		void configServer(const unsigned short port = 3000); 
 		void clientListener(void);
 
 	private:
@@ -45,7 +45,6 @@ class TwitterServer
 		void receive(const SOCKET* clientSocket);
 
 		//Helper methods
-
 		SOCKET getSocketByTweeter(const string name);
 		void followTweeter(const SOCKET follower, const string followedTweeter);
 		void commandInterpreter(char* command[], const SOCKET clientSocket);

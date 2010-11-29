@@ -14,54 +14,50 @@ TwitterServer::TwitterServer(const unsigned short port) :
 {
 	try
 	{
-		socketCreator.createSocket(&requestSocket, AF_INET);
-		FD_ZERO(&actionFlag);
-		FD_SET(requestSocket, &actionFlag);
+		socketCreator.createSocket(&requestSocket, AF_INET);	// set up the listening socket
+		FD_ZERO(&actionFlag);									// set status flag to zero
+		FD_SET(requestSocket, &actionFlag);						// set up status flag for listen socket
 
-		for(int i = 0;i < MAXCLIENTS;i++)
-		{
+		for(int i = 0;i < MAXCLIENTS;i++)						// set all client socktets to invalid
 			clients[i] = INVALID_SOCKET;
-		}
 	}
-	catch(string failure)
+	catch(string failure)										// if something fails print error
 	{
 		printf("%s", failure.c_str());
 	}
 }
 
-TwitterServer::~TwitterServer(void)
+TwitterServer::~TwitterServer(void)		// destructor
 {
-	closeSockets();
-	WSACleanup();
+	closeSockets();						// close all socktes
+	WSACleanup();						// clean
 }
 
 void TwitterServer::configServer(const unsigned short port)
 {
 	int errorCode;
 
-	memset(&localhost, 0, sizeof(SOCKADDR_IN));
-	localhost.sin_family = AF_INET;
-	localhost.sin_port = htons(port);
-	localhost.sin_addr.s_addr = ADDR_ANY;
+	memset(&localhost, 0, sizeof(SOCKADDR_IN));		// reset all to zero
+	localhost.sin_family = AF_INET;					// set tcp/ip protocol
+	localhost.sin_port = htons(port);				// set port 	
+	localhost.sin_addr.s_addr = ADDR_ANY;			// set standard ip address
 
 	printf("\nBinding socket...");
 
-	errorCode = bind(requestSocket, (SOCKADDR*)&localhost, sizeof(SOCKADDR_IN));
+	errorCode = bind(requestSocket, (SOCKADDR*)&localhost, sizeof(SOCKADDR_IN));	// bind listen socket, get error code
 
 	if(errorCode == SOCKET_ERROR)
 	{
-		closeRequestSocket();
+		closeRequestSocket();		// if something goes wrong, close socket
 
-		throw exceptionTexter("\nFAIL: Unable to bind socket! (Error Code: ", errorCode);
+		throw exceptionTexter("\nFAIL: Unable to bind socket! (Error Code: ", errorCode);	// throw message with error code
 	}
 	else
-	{
 		printf("\nSUCCESS: Bound socket to port %u!", port);
-	}
 
 	printf("\nStarting listen mode...");
 
-	errorCode = listen(requestSocket, 10);
+	errorCode = listen(requestSocket, 10);		// start listening, get error code
 
 	if(errorCode == SOCKET_ERROR)
 	{
@@ -70,32 +66,28 @@ void TwitterServer::configServer(const unsigned short port)
 		throw exceptionTexter("\nFAIL: Unable to initiate listen mode! (Error Code: ", errorCode);
 	}
 	else
-	{
 		printf("\nSUCCESS: Listen mode started!");
-	}
 }
 
 void TwitterServer::clientListener(void)
 {
 	int errorCode;
-	char* command[2];
+	char* command[2];	// command string for login, logout, follow
 
-	setClientToOnline();
+	setClientToOnline();		// set  client stati to online
 
-	errorCode = select(1000, &actionFlag, NULL, NULL, 0);
+	errorCode = select(1000, &actionFlag, NULL, NULL, 0);	// select client
 
-	if(errorCode == SOCKET_ERROR)
-	{
+	if(errorCode == SOCKET_ERROR)							// check for error
 		throw exceptionTexter("\nFAIL: Something went wrong with SELECT! (Error Code: ", errorCode);
-	}
 
 	if(FD_ISSET(requestSocket, &actionFlag))
 	{
 		try
 		{
-			acceptClient(errorCode);
+			acceptClient(errorCode);	// accept client
 		}
-		catch(string failure)
+		catch(string failure)			// check for errors
 		{
 			printf("%s", failure.c_str());
 		}
@@ -103,22 +95,21 @@ void TwitterServer::clientListener(void)
 
 	for(int i = 0;i < MAXCLIENTS;i++)
 	{
-		if(clients[i] != INVALID_SOCKET && FD_ISSET(clients[i], &actionFlag))
+		if(clients[i] != INVALID_SOCKET && FD_ISSET(clients[i], &actionFlag))	// if client is valid and set online
 		{
 			try
 			{
 				//FIXME: escaping character for command
 
-				receive(&clients[i]);
+				receive(&clients[i]);		// receive messages
 
-				makeSubString(command);
+				makeSubString(command);		// divide received string
 
-				commandInterpreter(command, clients[i]);
+				commandInterpreter(command, clients[i]);	// interpret commands
 
-				delete [] command[1];
-				delete [] command[0];
+				delete [] command;
 			}
-			catch(const char* failure)
+			catch(const char* failure)		// on failure set client offline and print error
 			{
 				printf("%s", failure);
 				setClientToOffline(&clients[i]);
@@ -131,28 +122,22 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 {
 	string messageForClient;
 
-	if(!strcmp(command[0], "login"))
-	{
+	if(!strcmp(command[0], "login"))				// interpret commands and do related action
 		logInTweeter(clientSocket, command[1]);
-	}
-	else if(loggedIn(clientSocket))
+
+	else if(loggedIn(clientSocket))					// those commands only work when logged in
 	{
 		if(!strcmp(command[0], "logout"))
-		{
 			logOutTweeter(clientSocket);
-		}
+
 		else if(!strcmp(command[0], "whoami?"))
-		{
 			sendNameOfTweeter(clientSocket);
-		}
+
 		else if(!strcmp(command[0], "follow"))
-		{
 			followTweeter(clientSocket, command[1]);
-		}
+
 		else
-		{
 			newTweet(clientSocket, clientMessage);
-		}
 	}
 	else
 	{
@@ -317,24 +302,19 @@ void TwitterServer::logInTweeter(const SOCKET clientSocket, const string name)
 
 void TwitterServer::acceptClient(int numberOfClients)
 {
-	for(int i = 0;i < numberOfClients;i++)
+	for(int j = 0;j < MAXCLIENTS;j++)	// go through all open sockets
 	{
-		for(int j = 0;j < MAXCLIENTS;j++)
+		if(clients[j] == INVALID_SOCKET)	// if the current socket is invalid
 		{
-			if(clients[j] == INVALID_SOCKET)
-			{
-				clients[j] = accept(requestSocket, NULL, NULL);
+			clients[j] = accept(requestSocket, NULL, NULL);		// accept client here
 
-				if(clients[j] == INVALID_SOCKET)
-				{
-					throw exceptionTexter("\nFAIL: Couldn't connect client! (socket ", clients[j]);
-				}
-				else
-				{
-					printf("\nSUCCESS: Connected with client! (socket %d)", clients[j]);
-					j = MAXCLIENTS;
-					i = numberOfClients;
-				}
+			if(clients[j] == INVALID_SOCKET)
+				throw exceptionTexter("\nFAIL: Couldn't connect client! (socket ", clients[j]);
+
+			else
+			{
+				printf("\nSUCCESS: Connected with client! (socket %d)", clients[j]);
+				j = MAXCLIENTS;
 			}
 		}
 	}
