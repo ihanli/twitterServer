@@ -82,7 +82,7 @@ void TwitterServer::clientListener(void)
 
 	setClientToOnline();
 
-	errorCode = select((unsigned int)requestSocket + MAXCLIENTS, &actionFlag, NULL, NULL, 0);
+	errorCode = select(1000, &actionFlag, NULL, NULL, 0);
 
 	if(errorCode == SOCKET_ERROR)
 	{
@@ -236,7 +236,7 @@ void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 		{
 			if(it->second == clientSocket)
 			{
-				sendToClient(&(it->first), tweet.find(tweeter[clientSocket])->second.c_str());
+				sendToClient(&it->first, tweet.find(tweeter[clientSocket])->second.c_str());
 			}
 
 			it++;
@@ -332,6 +332,8 @@ void TwitterServer::acceptClient(int numberOfClients)
 				else
 				{
 					printf("\nSUCCESS: Connected with client! (socket %d)", clients[j]);
+					j = MAXCLIENTS;
+					i = numberOfClients;
 				}
 			}
 		}
