@@ -107,7 +107,6 @@ void TwitterServer::clientListener(void)
 		{
 			try
 			{
-				//TODO: analyse commands from clients
 				//FIXME: escaping character for command
 
 				receive(&clients[i]);
@@ -320,17 +319,20 @@ void TwitterServer::acceptClient(int numberOfClients)
 {
 	for(int i = 0;i < numberOfClients;i++)
 	{
-		if(clients[i] == INVALID_SOCKET)
+		for(int j = 0;j < MAXCLIENTS;j++)
 		{
-			clients[i] = accept(requestSocket, NULL, NULL);
+			if(clients[j] == INVALID_SOCKET)
+			{
+				clients[j] = accept(requestSocket, NULL, NULL);
 
-			if(clients[i] == INVALID_SOCKET)
-			{
-				throw exceptionTexter("\nFAIL: Couldn't connect client! (socket ", clients[i]);
-			}
-			else
-			{
-				printf("\nSUCCESS: Connected with client! (socket %d)", clients[i]);
+				if(clients[j] == INVALID_SOCKET)
+				{
+					throw exceptionTexter("\nFAIL: Couldn't connect client! (socket ", clients[j]);
+				}
+				else
+				{
+					printf("\nSUCCESS: Connected with client! (socket %d)", clients[j]);
+				}
 			}
 		}
 	}
