@@ -225,11 +225,23 @@ bool TwitterServer::loggedIn(const SOCKET clientSocket)
 
 void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 {
-	tweet.insert( pair<string, string>(tweeter[clientSocket], text) );
+	multimap<SOCKET, SOCKET>::iterator it = abonnement.begin();
 
 	try
 	{
+		tweet.insert( pair<string, string>(tweeter[clientSocket], text) );
+
 		sendToClient(&clientSocket, tweet.find(tweeter[clientSocket])->second.c_str());
+
+		while(it != abonnement.end())
+		{
+			if(it->second == clientSocket)
+			{
+				sendToClient(&(it->first), tweet.find(tweeter[clientSocket])->second.c_str());
+			}
+
+			it++;
+		}
 	}
 	catch(string failure)
 	{
