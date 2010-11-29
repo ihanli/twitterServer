@@ -16,6 +16,6 @@
 
 using namespace std;
 
-const char* exceptionTexter(const char* exceptionText, const int errorCode);
+const char* exceptionTexter(const char* exceptionText, const int errorCode);	// function to convert errors to char
 
 #endif // EXCEPTIONTEXTER_H_INCLUDED

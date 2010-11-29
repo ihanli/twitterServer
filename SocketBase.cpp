@@ -14,34 +14,26 @@ SocketBase::SocketBase(const WORD clientSocketVersion, const int type, const int
 
 void SocketBase::createSocket(SOCKET* base, int af)
 {
-    WSADATA wsa;
+    WSADATA wsa;		// socket base. windows specific.
     int errorCode;
 
     printf("\nStarting baseSocket...");
 
-    memset(&wsa, 0, sizeof(WSADATA));
+    memset(&wsa, 0, sizeof(WSADATA));		// set to zero
 
-    errorCode = WSAStartup(version, &wsa);
+    errorCode = WSAStartup(version, &wsa);	// start
 
     if(errorCode != 0)
-    {
         throw exceptionTexter("\nFAIL: Couldn't start baseSocket (WSAStartup) (Error Code: ", WSAGetLastError());
-    }
     else
-    {
         printf("\nSUCCESS: baseSocket started!");
-    }
 
     printf("\nCreating socket...");
 
-    *base = socket(af, type, protocol);
+    *base = socket(af, type, protocol);		// create socket
 
     if(*base == INVALID_SOCKET)
-    {
     	throw exceptionTexter("\nFAIL: Couldn't create socket (socket) (Error Code: ", WSAGetLastError());
-    }
     else
-    {
         printf("\nSUCCESS: Socket created!");
-    }
 }
