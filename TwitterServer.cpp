@@ -159,31 +159,26 @@ SOCKET TwitterServer::getSocketByTweeter(const string name)
 	while(it != tweeter.end())
 	{
 		if(it->second == name)
-		{
-			return it->first;
-		}
+			return it->first;		// returns socket if tweeter was found
 
 		it++;
 	}
-
 	return INVALID_SOCKET;
 }
 
 void TwitterServer::followTweeter(const SOCKET follower, const string followedTweeter)
 {
 	string messageForClient;
-	SOCKET tweeterSocket = getSocketByTweeter(followedTweeter);
+	SOCKET tweeterSocket = getSocketByTweeter(followedTweeter);		// find out socket of followed tweeter
 
-	if(tweeterSocket != INVALID_SOCKET && loggedIn(tweeterSocket))
+	if(tweeterSocket != INVALID_SOCKET && loggedIn(tweeterSocket))	// if that tweeter is logged in and valid
 	{
-		abonnement.insert( pair<SOCKET, SOCKET>(follower, tweeterSocket) );
+		abonnement.insert( pair<SOCKET, SOCKET>(follower, tweeterSocket) );		// add abonement
 
-		messageForClient = tweeter[follower] + " is now following " + tweeter[tweeterSocket] + "!";
+		messageForClient = tweeter[follower] + " is now following " + tweeter[tweeterSocket] + "!";		// success
 	}
 	else
-	{
-		messageForClient = "the tweeter you want to follow, doesn't exist or is not logged in!";
-	}
+		messageForClient = "the tweeter you want to follow, doesn't exist or is not logged in!";		// fail
 
 	try
 	{
@@ -197,14 +192,11 @@ void TwitterServer::followTweeter(const SOCKET follower, const string followedTw
 
 bool TwitterServer::loggedIn(const SOCKET clientSocket)
 {
-	if(tweeter.find(clientSocket) == tweeter.end())
-	{
+	if(tweeter.find(clientSocket) == tweeter.end())		// check if a tweeter is logged in
 		return false;
-	}
+
 	else
-	{
 		return true;
-	}
 }
 
 void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
@@ -213,16 +205,14 @@ void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 
 	try
 	{
-		tweet.insert( pair<string, string>(tweeter[clientSocket], text) );
+		tweet.insert( pair<string, string>(tweeter[clientSocket], text) );		// save tweet
 
-		sendToClient(&clientSocket, tweet.find(tweeter[clientSocket])->second.c_str());
+		sendToClient(&clientSocket, tweet.find(tweeter[clientSocket])->second.c_str());		// echo tweet
 
 		while(it != abonnement.end())
 		{
 			if(it->second == clientSocket)
-			{
-				sendToClient(&it->first, tweet.find(tweeter[clientSocket])->second.c_str());
-			}
+				sendToClient(&it->first, tweet.find(tweeter[clientSocket])->second.c_str());	// share tweets
 
 			it++;
 		}
@@ -235,9 +225,7 @@ void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 
 void TwitterServer::makeSubString(char* command[])
 {
-	unsigned int space;
-
-	space = strcspn(clientMessage, " ");
+	unsigned int space = strcspn(clientMessage, " ");	// get ascii code of space
 
 	command[0] = new char[space];
 	strncpy(command[0], clientMessage, space);
@@ -248,21 +236,17 @@ void TwitterServer::makeSubString(char* command[])
 		command[1] = new char[strlen(clientMessage) - space];
 
 		for(unsigned int pos = space;pos < strlen(clientMessage);pos++)
-		{
 			command[1][pos - space] = clientMessage[pos];
-		}
 
 		//command[1][strlen(clientMessage)] = '\0';
 	}
 	else
-	{
 		command[1] = NULL;
-	}
 }
 
 void TwitterServer::logOutTweeter(const SOCKET clientSocket)
 {
-	tweeter.erase(clientSocket);
+	tweeter.erase(clientSocket);	// erase tweeter socket from map
 
 	try
 	{
@@ -278,7 +262,7 @@ void TwitterServer::sendNameOfTweeter(const SOCKET clientSocket)
 {
 	try
 	{
-		sendToClient(&clientSocket, tweeter[clientSocket].c_str());
+		sendToClient(&clientSocket, tweeter[clientSocket].c_str());		// whoami?
 	}
 	catch(string failure)
 	{
@@ -288,7 +272,7 @@ void TwitterServer::sendNameOfTweeter(const SOCKET clientSocket)
 
 void TwitterServer::logInTweeter(const SOCKET clientSocket, const string name)
 {
-	tweeter[clientSocket] = name;
+	tweeter[clientSocket] = name;	// create tweeter
 
 	try
 	{
@@ -324,7 +308,7 @@ void TwitterServer::sendToClient(const SOCKET* client, const char* message)
 {
 	//TODO: check if whole message was sent
 
-	int errorCode;
+	int errorCode;		// sends a message to a client/tweeter
 
 	errorCode = send(*client, message, BUFFERSIZE, 0);
 
@@ -340,7 +324,7 @@ void TwitterServer::receive(const SOCKET* clientSocket)
 
 	int errorCode;
 
-	errorCode = recv(*clientSocket, clientMessage, BUFFERSIZE, 0);
+	errorCode = recv(*clientSocket, clientMessage, BUFFERSIZE, 0); // receive a message
 
 	if(errorCode == 0)
 	{
@@ -354,21 +338,19 @@ void TwitterServer::receive(const SOCKET* clientSocket)
 
 void TwitterServer::setClientToOffline(SOCKET* clientSocket)
 {
-	closesocket(*clientSocket);
-	*clientSocket = INVALID_SOCKET;
+	closesocket(*clientSocket);			// close the client socket
+	*clientSocket = INVALID_SOCKET;		// and set to invalid
 
-	FD_ZERO(&actionFlag);
-	FD_SET(requestSocket, &actionFlag);
+	FD_ZERO(&actionFlag);				// set the status flag to zero
+	FD_SET(requestSocket, &actionFlag);	// set the status flag for the request socket to zero
 }
 
 void TwitterServer::setClientToOnline(void)
 {
-	for(int i = 0; i < MAXCLIENTS;i++)
+	for(int i = 0; i < MAXCLIENTS;i++)	// go through all open sockets
 	{
-		if(clients[i] != INVALID_SOCKET)
-		{
-			FD_SET(clients[i], &actionFlag);
-		}
+		if(clients[i] != INVALID_SOCKET)	// if not invalid
+			FD_SET(clients[i], &actionFlag);	// set status to active
 	}
 }
 
@@ -383,7 +365,7 @@ void TwitterServer::closeSockets(void)
 	closesocket(requestSocket);
 	FD_ZERO(&actionFlag);
 
-	for(int i = 0;i < MAXCLIENTS;i++)
+	for(int i = 0;i < MAXCLIENTS;i++)	// close all open sockets
 	{
 		closesocket(clients[i]);
 	}

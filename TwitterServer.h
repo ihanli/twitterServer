@@ -30,9 +30,9 @@ class TwitterServer
 	private:
 		SOCKET requestSocket;
 		map<unsigned int, SOCKET> clients;
-		map<SOCKET, string> tweeter;
-		multimap<string, string> tweet;
-		multimap<SOCKET, SOCKET> abonnement;
+		map<SOCKET, string> tweeter;			// saves tweeter socket and name
+		multimap<string, string> tweet;			// saves tweets by socket and content
+		multimap<SOCKET, SOCKET> abonnement;	// saves who follows who
 		SOCKADDR_IN localhost;
 		FD_SET actionFlag;
 		SocketBase socketCreator;
