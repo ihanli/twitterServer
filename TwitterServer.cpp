@@ -123,20 +123,22 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 {
 	string messageForClient;
 
-	if(!strcmp(command[0], "login"))				// interpret commands and do related action
+	if(!strcmp(command[0], ":login"))				// interpret commands and do related action
 		logInTweeter(clientSocket, command[1]);
 
 	else if(loggedIn(clientSocket))					// those commands only work when logged in
 	{
-		if(!strcmp(command[0], "logout"))
+		if(!strcmp(command[0], ":logout"))
 			logOutTweeter(clientSocket);
 
-		else if(!strcmp(command[0], "whoami?"))
+		else if(!strcmp(command[0], ":whoami?"))
 			sendNameOfTweeter(clientSocket);
 
-		else if(!strcmp(command[0], "follow"))
+		else if(!strcmp(command[0], ":follow"))
 			followTweeter(clientSocket, command[1]);
-		else
+		else if(!strcmp(command[0], ":pull"))
+			getTweets(clientSocket);
+		else if(strcmp(command[0], "ACK") > 0)
 			newTweet(clientSocket, clientMessage);
 	}
 	else
@@ -149,6 +151,39 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 		{
 			printf("%s", failure.c_str());
 		}
+	}
+}
+
+void TwitterServer::getTweets(const SOCKET clientSocket)
+{
+	multimap<string, string>::iterator it;
+
+	try
+	{
+		for(it = tweet.begin();it != tweet.end();it++)
+		{
+			if(it->first == tweeter[clientSocket])
+			{
+				sendToClient(&clientSocket, it->second.c_str());
+
+				receive(&clientSocket);
+
+				if(!strcmp(clientMessage, "ACK"))
+				{
+					continue;
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
+
+		sendToClient(&clientSocket, "</tweet>");
+	}
+	catch(string failure)
+	{
+		printf("%s", failure.c_str());
 	}
 }
 
@@ -216,7 +251,7 @@ void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 //		{
 //			if(it->second == clientSocket)
 //			{
-//				sendToClient(&it->first, text.c_str());//tweet.find(tweeter[clientSocket])->second.c_str());
+//				sendToClient(&it->first, text.c_str());
 //			}
 //
 //			it++;
@@ -284,7 +319,7 @@ void TwitterServer::logInTweeter(const SOCKET clientSocket, const string name)
 
 	try
 	{
-		sendToClient(&clientSocket, "twitter: hello bird!");
+		sendToClient(&clientSocket, "\ntwitter: hello bird!");
 	}
 	catch(string failure)
 	{

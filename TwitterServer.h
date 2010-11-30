@@ -24,7 +24,7 @@ class TwitterServer
 	public:
 		TwitterServer(const unsigned short port = 3000);
 		~TwitterServer();
-		void configServer(const unsigned short port = 3000); 
+		void configServer(const unsigned short port = 3000);
 		void clientListener(void);
 
 	private:
@@ -46,6 +46,7 @@ class TwitterServer
 
 		//Helper methods
 		SOCKET getSocketByTweeter(const string name);
+		void getTweets(const SOCKET clientSocket);
 		void followTweeter(const SOCKET follower, const string followedTweeter);
 		void commandInterpreter(char* command[], const SOCKET clientSocket);
 		bool loggedIn(const SOCKET clientSocket);
