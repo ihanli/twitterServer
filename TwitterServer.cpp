@@ -39,7 +39,7 @@ void TwitterServer::configServer(const unsigned short port)
 
 	memset(&localhost, 0, sizeof(SOCKADDR_IN));		// reset all to zero
 	localhost.sin_family = AF_INET;					// set tcp/ip protocol
-	localhost.sin_port = htons(port);				// set port 	
+	localhost.sin_port = htons(port);				// set port
 	localhost.sin_addr.s_addr = ADDR_ANY;			// set standard ip address
 
 	printf("\nBinding socket...");
@@ -136,7 +136,6 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 
 		else if(!strcmp(command[0], "follow"))
 			followTweeter(clientSocket, command[1]);
-
 		else
 			newTweet(clientSocket, clientMessage);
 	}
@@ -203,20 +202,25 @@ bool TwitterServer::loggedIn(const SOCKET clientSocket)
 void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 {
 	multimap<SOCKET, SOCKET>::iterator it = abonnement.begin();
+	string messageForClient;
 
 	try
 	{
 		tweet.insert( pair<string, string>(tweeter[clientSocket], text) );		// save tweet
 
-		sendToClient(&clientSocket, tweet.find(tweeter[clientSocket])->second.c_str());		// echo tweet
+		messageForClient = tweeter[clientSocket] + ": " + text;
 
-		while(it != abonnement.end())
-		{
-			if(it->second == clientSocket)
-				sendToClient(&it->first, tweet.find(tweeter[clientSocket])->second.c_str());	// share tweets
+		sendToClient(&clientSocket, messageForClient.c_str());
 
-			it++;
-		}
+//		while(it != abonnement.end())
+//		{
+//			if(it->second == clientSocket)
+//			{
+//				sendToClient(&it->first, text.c_str());//tweet.find(tweeter[clientSocket])->second.c_str());
+//			}
+//
+//			it++;
+//		}
 	}
 	catch(string failure)
 	{
@@ -236,10 +240,12 @@ void TwitterServer::makeSubString(char* command[])
 	{
 		command[1] = new char[strlen(clientMessage) - space];
 
-		for(unsigned int pos = space;pos < strlen(clientMessage);pos++)
-			command[1][pos - space] = clientMessage[pos];
+		for(unsigned int pos = space + 1;pos < strlen(clientMessage);pos++)
+		{
+			command[1][pos - space - 1] = clientMessage[pos];
+		}
 
-		//command[1][strlen(clientMessage)] = '\0';
+		command[1][strlen(clientMessage) - space - 1] = '\0';
 	}
 	else
 		command[1] = NULL;
@@ -247,11 +253,11 @@ void TwitterServer::makeSubString(char* command[])
 
 void TwitterServer::logOutTweeter(const SOCKET clientSocket)
 {
-	//tweeter.erase(clientSocket);	// erase tweeter socket from map
+	tweeter.erase(clientSocket);	// erase tweeter socket from map
 
 	try
 	{
-		sendToClient(&clientSocket, "oooh, the bird flew away!");
+		sendToClient(&clientSocket, "twitter: oooh, the bird flew away!");
 	}
 	catch(string failure)
 	{
@@ -278,7 +284,7 @@ void TwitterServer::logInTweeter(const SOCKET clientSocket, const string name)
 
 	try
 	{
-		sendToClient(&clientSocket, "hello bird!");
+		sendToClient(&clientSocket, "twitter: hello bird!");
 	}
 	catch(string failure)
 	{
@@ -300,7 +306,7 @@ void TwitterServer::acceptClient(int numberOfClients)
 			else
 			{
 				printf("\nSUCCESS: Connected with client! (socket %d)", clients[j]);
-				j = MAXCLIENTS;
+				break;
 			}
 		}
 	}
