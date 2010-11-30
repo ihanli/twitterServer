@@ -107,7 +107,8 @@ void TwitterServer::clientListener(void)
 
 				commandInterpreter(command, clients[i]);	// interpret commands
 
-				delete [] command;
+				delete [] command[1];
+				delete [] command[0];
 			}
 			catch(const char* failure)		// on failure set client offline and print error
 			{
@@ -273,6 +274,7 @@ void TwitterServer::sendNameOfTweeter(const SOCKET clientSocket)
 void TwitterServer::logInTweeter(const SOCKET clientSocket, const string name)
 {
 	tweeter[clientSocket] = name;	// create tweeter
+	//tweeter.insert(pair<SOCKET, string>(clientSocket, name));
 
 	try
 	{
@@ -313,9 +315,7 @@ void TwitterServer::sendToClient(const SOCKET* client, const char* message)
 	errorCode = send(*client, message, BUFFERSIZE, 0);
 
 	if(errorCode == SOCKET_ERROR)
-	{
 		throw exceptionTexter("\nFAIL: Unable to send message! (Error Code: ", errorCode);
-	}
 }
 
 void TwitterServer::receive(const SOCKET* clientSocket)
@@ -327,13 +327,10 @@ void TwitterServer::receive(const SOCKET* clientSocket)
 	errorCode = recv(*clientSocket, clientMessage, BUFFERSIZE, 0); // receive a message
 
 	if(errorCode == 0)
-	{
 		throw exceptionTexter("\nFAIL: Lost connection to client! (Error Code: ", errorCode);
-	}
+
 	else if(errorCode == SOCKET_ERROR || !strcmp("offline", clientMessage))
-	{
 		throw exceptionTexter("\nClient went offline! (socket ", *clientSocket);
-	}
 }
 
 void TwitterServer::setClientToOffline(SOCKET* clientSocket)
