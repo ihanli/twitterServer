@@ -157,6 +157,7 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 void TwitterServer::getTweets(const SOCKET clientSocket)
 {
 	multimap<string, string>::iterator it;
+	string formattedTweet;
 
 	try
 	{
@@ -164,27 +165,31 @@ void TwitterServer::getTweets(const SOCKET clientSocket)
 		{
 			if(it->first == tweeter[clientSocket])
 			{
-				sendToClient(&clientSocket, it->second.c_str());
+//				printf("\n%s", it->second.c_str());
+				formattedTweet = "\n" + it->second;
+				sendToClient(&clientSocket, formattedTweet.c_str());
 
-				receive(&clientSocket);
+//				receive(&clientSocket);
 
-				if(!strcmp(clientMessage, "ACK"))
-				{
-					continue;
-				}
-				else
-				{
-					break;
-				}
+//				if(!strcmp(clientMessage, "ACK"))
+//				{
+//					continue;
+//				}
+//				else
+//				{
+//					break;
+//				}
 			}
 		}
 
-		sendToClient(&clientSocket, "</tweet>");
+//		sendToClient(&clientSocket, "</tweet>");
 	}
 	catch(string failure)
 	{
 		printf("%s", failure.c_str());
 	}
+
+	sendToClient(&clientSocket, "ETX");
 }
 
 SOCKET TwitterServer::getSocketByTweeter(const string name)
@@ -246,6 +251,7 @@ void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 		messageForClient = tweeter[clientSocket] + ": " + text;
 
 		sendToClient(&clientSocket, messageForClient.c_str());
+		sendToClient(&clientSocket, "ETX");
 
 //		while(it != abonnement.end())
 //		{
@@ -293,6 +299,7 @@ void TwitterServer::logOutTweeter(const SOCKET clientSocket)
 	try
 	{
 		sendToClient(&clientSocket, "twitter: oooh, the bird flew away!");
+		sendToClient(&clientSocket, "ETX");
 	}
 	catch(string failure)
 	{
@@ -305,6 +312,7 @@ void TwitterServer::sendNameOfTweeter(const SOCKET clientSocket)
 	try
 	{
 		sendToClient(&clientSocket, tweeter[clientSocket].c_str());		// whoami?
+		sendToClient(&clientSocket, "ETX");
 	}
 	catch(string failure)
 	{
@@ -320,6 +328,7 @@ void TwitterServer::logInTweeter(const SOCKET clientSocket, const string name)
 	try
 	{
 		sendToClient(&clientSocket, "\ntwitter: hello bird!");
+		sendToClient(&clientSocket, "ETX");
 	}
 	catch(string failure)
 	{
