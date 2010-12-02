@@ -11,7 +11,6 @@
 #define TWITTERSERVER_H_INCLUDED
 
 #include <map>
-//#include <windows.h>			// not needed in visual studio
 #include "SocketBase.h"
 
 #define MAXCLIENTS 10			// how many clients the server can handle

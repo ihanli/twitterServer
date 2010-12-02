@@ -138,14 +138,20 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 			followTweeter(clientSocket, command[1]);
 		else if(!strcmp(command[0], ":pull"))
 			getTweets(clientSocket);
-		else if(strcmp(command[0], "ACK") > 0)
-			newTweet(clientSocket, clientMessage);
+		else if(!strcmp(command[0], ":tweet"))
+			newTweet(clientSocket, command[1]);
+		else
+		{
+			sendToClient(&clientSocket, "twitter: command not found!\n");
+			sendToClient(&clientSocket, "ETX");
+		}
 	}
 	else
 	{
 		try
 		{
-			sendToClient(&clientSocket, "you have to login!");
+			sendToClient(&clientSocket, "twitter: you have to login!\n");
+			sendToClient(&clientSocket, "ETX");
 		}
 		catch(string failure)
 		{
@@ -165,24 +171,10 @@ void TwitterServer::getTweets(const SOCKET clientSocket)
 		{
 			if(it->first == tweeter[clientSocket])
 			{
-//				printf("\n%s", it->second.c_str());
-				formattedTweet = "\n" + it->second;
+				formattedTweet = tweeter[clientSocket] + ": " + it->second + "\n";
 				sendToClient(&clientSocket, formattedTweet.c_str());
-
-//				receive(&clientSocket);
-
-//				if(!strcmp(clientMessage, "ACK"))
-//				{
-//					continue;
-//				}
-//				else
-//				{
-//					break;
-//				}
 			}
 		}
-
-//		sendToClient(&clientSocket, "</tweet>");
 	}
 	catch(string failure)
 	{
@@ -215,14 +207,15 @@ void TwitterServer::followTweeter(const SOCKET follower, const string followedTw
 	{
 		abonnement.insert( pair<SOCKET, SOCKET>(follower, tweeterSocket) );		// add abonement
 
-		messageForClient = tweeter[follower] + " is now following " + tweeter[tweeterSocket] + "!";		// success
+		messageForClient = tweeter[follower] + " is now following " + tweeter[tweeterSocket] + "!\n";		// success
 	}
 	else
-		messageForClient = "the tweeter you want to follow, doesn't exist or is not logged in!";		// fail
+		messageForClient = "the tweeter you want to follow, doesn't exist or is not logged in!\n";		// fail
 
 	try
 	{
 		sendToClient(&follower, messageForClient.c_str());
+		sendToClient(&follower, "ETX");
 	}
 	catch(string failure)
 	{
@@ -248,7 +241,7 @@ void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 	{
 		tweet.insert( pair<string, string>(tweeter[clientSocket], text) );		// save tweet
 
-		messageForClient = tweeter[clientSocket] + ": " + text;
+		messageForClient = tweeter[clientSocket] + ": " + text + "\n";
 
 		sendToClient(&clientSocket, messageForClient.c_str());
 		sendToClient(&clientSocket, "ETX");
@@ -298,7 +291,7 @@ void TwitterServer::logOutTweeter(const SOCKET clientSocket)
 
 	try
 	{
-		sendToClient(&clientSocket, "twitter: oooh, the bird flew away!");
+		sendToClient(&clientSocket, "twitter: oooh, the bird flew away!\n");
 		sendToClient(&clientSocket, "ETX");
 	}
 	catch(string failure)
@@ -323,11 +316,10 @@ void TwitterServer::sendNameOfTweeter(const SOCKET clientSocket)
 void TwitterServer::logInTweeter(const SOCKET clientSocket, const string name)
 {
 	tweeter[clientSocket] = name;	// create tweeter
-	//tweeter.insert(pair<SOCKET, string>(clientSocket, name));
 
 	try
 	{
-		sendToClient(&clientSocket, "\ntwitter: hello bird!");
+		sendToClient(&clientSocket, "twitter: hello bird!\n");
 		sendToClient(&clientSocket, "ETX");
 	}
 	catch(string failure)
