@@ -31,7 +31,7 @@ class TwitterServer
 		map<unsigned int, SOCKET> clients;
 		map<SOCKET, string> tweeter;			// saves tweeter socket and name
 		multimap<string, string> tweet;			// saves tweets by socket and content
-		multimap<SOCKET, SOCKET> abonnement;	// saves who follows who
+		multimap<string, string> abonnement;	// saves who follows who
 		SOCKADDR_IN localhost;
 		FD_SET actionFlag;
 		SocketBase socketCreator;
@@ -45,7 +45,9 @@ class TwitterServer
 
 		//Helper methods
 		SOCKET getSocketByTweeter(const string name);
-		void getTweets(const SOCKET clientSocket);
+		void getOtherTweets(const SOCKET clientSocket);
+		void getAllTweets(const SOCKET clientSocket);
+		void getOwnTweets(const SOCKET clientSocket);
 		void followTweeter(const SOCKET follower, const string followedTweeter);
 		void commandInterpreter(char* command[], const SOCKET clientSocket);
 		bool loggedIn(const SOCKET clientSocket);

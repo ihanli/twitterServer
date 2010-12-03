@@ -124,22 +124,31 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 	string messageForClient;
 
 	if(!strcmp(command[0], ":login"))				// interpret commands and do related action
+	{
 		logInTweeter(clientSocket, command[1]);
-
+	}
 	else if(loggedIn(clientSocket))					// those commands only work when logged in
 	{
 		if(!strcmp(command[0], ":logout"))
+		{
 			logOutTweeter(clientSocket);
-
+		}
 		else if(!strcmp(command[0], ":whoami?"))
+		{
 			sendNameOfTweeter(clientSocket);
-
+		}
 		else if(!strcmp(command[0], ":follow"))
+		{
 			followTweeter(clientSocket, command[1]);
+		}
 		else if(!strcmp(command[0], ":pull"))
-			getTweets(clientSocket);
+		{
+			getAllTweets(clientSocket);
+		}
 		else if(!strcmp(command[0], ":tweet"))
+		{
 			newTweet(clientSocket, command[1]);
+		}
 		else
 		{
 			sendToClient(&clientSocket, "twitter: command not found!\n");
@@ -160,9 +169,33 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 	}
 }
 
-void TwitterServer::getTweets(const SOCKET clientSocket)
+void TwitterServer::getAllTweets(const SOCKET clientSocket)
+{
+	getOwnTweets(clientSocket);
+	getOtherTweets(clientSocket);
+}
+
+void TwitterServer::getOtherTweets(const SOCKET clientSocket)
+{
+	string followedTweeter;
+	multimap<string, string>::iterator it;
+	pair<multimap<string, string>::iterator, multimap<string,string>::iterator> otherTweets;
+
+	otherTweets = abonnement.equal_range(tweeter[clientSocket]);
+
+	if(otherTweets.first->first == tweeter[clientSocket])
+	{
+		for(it = otherTweets.first;it != otherTweets.second;++it)
+		{
+			getOwnTweets(getSocketByTweeter(it->second));
+		}
+	}
+}
+
+void TwitterServer::getOwnTweets(const SOCKET clientSocket)
 {
 	multimap<string, string>::iterator it;
+
 	string formattedTweet;
 
 	try
@@ -181,7 +214,7 @@ void TwitterServer::getTweets(const SOCKET clientSocket)
 		printf("%s", failure.c_str());
 	}
 
-	sendToClient(&clientSocket, "ETX");
+//	sendToClient(&clientSocket, "ETX");
 }
 
 SOCKET TwitterServer::getSocketByTweeter(const string name)
@@ -205,9 +238,9 @@ void TwitterServer::followTweeter(const SOCKET follower, const string followedTw
 
 	if(tweeterSocket != INVALID_SOCKET && loggedIn(tweeterSocket))	// if that tweeter is logged in and valid
 	{
-		abonnement.insert( pair<SOCKET, SOCKET>(follower, tweeterSocket) );		// add abonement
+		abonnement.insert( pair<string, string>(tweeter[follower], followedTweeter) );		// add abonement
 
-		messageForClient = tweeter[follower] + " is now following " + tweeter[tweeterSocket] + "!\n";		// success
+		messageForClient = tweeter[follower] + " is now following " + followedTweeter + "!\n";		// success
 	}
 	else
 		messageForClient = "the tweeter you want to follow, doesn't exist or is not logged in!\n";		// fail
@@ -234,7 +267,7 @@ bool TwitterServer::loggedIn(const SOCKET clientSocket)
 
 void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 {
-	multimap<SOCKET, SOCKET>::iterator it = abonnement.begin();
+	multimap<string, string>::iterator it = abonnement.begin();
 	string messageForClient;
 
 	try
@@ -245,16 +278,6 @@ void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 
 		sendToClient(&clientSocket, messageForClient.c_str());
 		sendToClient(&clientSocket, "ETX");
-
-//		while(it != abonnement.end())
-//		{
-//			if(it->second == clientSocket)
-//			{
-//				sendToClient(&it->first, text.c_str());
-//			}
-//
-//			it++;
-//		}
 	}
 	catch(string failure)
 	{
