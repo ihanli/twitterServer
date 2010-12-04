@@ -191,10 +191,10 @@ void TwitterServer::followTweeter(const SOCKET follower, const string followedTw
 	{
 		abonnement.insert( pair<string, string>(followedTweeter, tweeter[follower]) );		// add abonement
 
-		messageForClient = tweeter[follower] + " is now following " + followedTweeter + "!\n";		// success
+		messageForClient = "twitter: " + tweeter[follower] + " is now following " + followedTweeter + "!\n";		// success
 	}
 	else
-		messageForClient = "the tweeter you want to follow, doesn't exist or is not logged in!\n";		// fail
+		messageForClient = "twitter: the tweeter you want to follow, doesn't exist or is not logged in!\n";		// fail
 
 	try
 	{
@@ -257,9 +257,13 @@ void TwitterServer::logOutTweeter(const SOCKET clientSocket)
 
 void TwitterServer::sendNameOfTweeter(const SOCKET clientSocket)
 {
+	string messageForClient;
+
+	messageForClient = "twitter: " + tweeter[clientSocket] + "\n";
+
 	try
 	{
-		sendToClient(&clientSocket, tweeter[clientSocket].c_str());		// whoami?
+		sendToClient(&clientSocket, messageForClient.c_str());		// whoami?
 	}
 	catch(string failure)
 	{
