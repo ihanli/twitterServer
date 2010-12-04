@@ -72,13 +72,13 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 
 	makeSubString(command);		// divide received string
 
-	if(!strcmp(command[0], ":login"))				// interpret commands and do related action
+	if(!strcmp(command[0], ":in"))				// interpret commands and do related action
 	{
 		logInTweeter(clientSocket, command[1]);
 	}
 	else if(loggedIn(clientSocket))					// those commands only work when logged in
 	{
-		if(!strcmp(command[0], ":logout"))
+		if(!strcmp(command[0], ":out"))
 		{
 			logOutTweeter(clientSocket);
 		}
@@ -86,15 +86,15 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 		{
 			sendNameOfTweeter(clientSocket);
 		}
-		else if(!strcmp(command[0], ":follow"))
+		else if(!strcmp(command[0], ":f"))
 		{
 			followTweeter(clientSocket, command[1]);
 		}
-		else if(!strcmp(command[0], ":pull"))
+		else if(!strcmp(command[0], ":p"))
 		{
 			getAllTweets(clientSocket);
 		}
-		else if(!strcmp(command[0], ":tweet"))
+		else if(!strcmp(command[0], ":t"))
 		{
 			newTweet(clientSocket, command[1]);
 		}
@@ -121,7 +121,7 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 void TwitterServer::getAllTweets(const SOCKET clientSocket)
 {
 	getOwnTweets(clientSocket);
-	getOtherTweets(clientSocket);
+	//getOtherTweets(clientSocket);
 	sendToClient(&clientSocket, "ETX");
 }
 
@@ -133,7 +133,7 @@ void TwitterServer::getOtherTweets(const SOCKET clientSocket)
 
 	otherTweets = abonnement.equal_range(tweeter[clientSocket]);
 
-	if(otherTweets.first->first == tweeter[clientSocket])
+	if(otherTweets.first->first == tweeter[clientSocket] || otherTweets.first == abonnement.end())
 	{
 		for(it = otherTweets.first;it != otherTweets.second;++it)
 		{
