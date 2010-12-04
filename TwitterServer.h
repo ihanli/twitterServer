@@ -10,12 +10,7 @@
 #ifndef TWITTERSERVER_H_INCLUDED
 #define TWITTERSERVER_H_INCLUDED
 
-#include <map>
-#include "SocketBase.h"
 #include "MultiplexingServer.h"
-
-#define MAXCLIENTS 10			// how many clients the server can handle
-#define BUFFERSIZE 140			// maximum lenghth of the tweets
 
 using namespace std;
 
@@ -31,7 +26,6 @@ class TwitterServer:MultiplexingServer
 		map<SOCKET, string> tweeter;			// saves tweeter socket and name
 		multimap<string, string> tweet;			// saves tweets by socket and content
 		multimap<string, string> abonnement;	// saves who follows who
-		SOCKADDR_IN localhost;
 
 		//Helper methods
 		SOCKET getSocketByTweeter(const string name);
