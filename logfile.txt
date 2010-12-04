@@ -1,1 +1,4 @@
-ismail: logging works!
+ismail: first
+ismail: first
+ismail: second
+ismail: tweeeet

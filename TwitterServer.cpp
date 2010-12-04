@@ -25,7 +25,7 @@ void TwitterServer::run(void)
 
 void TwitterServer::makeSubString(char* command[])
 {
-	unsigned int space = strcspn(clientMessage, " ");	// get ascii code of space
+	unsigned int space = strcspn(clientMessage, " ");
 
 	command[0] = new char[space];
 	strncpy(command[0], clientMessage, space);
@@ -70,14 +70,13 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 		{
 			followTweeter(clientSocket, command[1]);
 		}
-		else if(!strcmp(command[0], ":p"))
-		{
-			getAllTweets(clientSocket);
-		}
+//		else if(!strcmp(command[0], ":p"))
+//		{
+//			getAllTweets(clientSocket);
+//		}
 		else if(!strcmp(command[0], ":t"))
 		{
 			newTweet(clientSocket, command[1]);
-			getOtherTweets(clientSocket);
 		}
 		else
 		{
@@ -99,54 +98,75 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 	sendToClient(&clientSocket, "ETX");
 }
 
-void TwitterServer::getAllTweets(const SOCKET clientSocket)
-{
-	getOwnTweets(clientSocket);
-	getOtherTweets(clientSocket);
-}
+//void TwitterServer::getAllTweets(const SOCKET clientSocket)
+//{
+//	getOwnTweets(clientSocket);
+//	getOtherTweets(clientSocket);
+//}
+//
+//void TwitterServer::getOtherTweets(const SOCKET clientSocket)
+//{
+//	string followedTweeter;
+//	multimap<string, string>::iterator it;
+//	pair<multimap<string, string>::iterator, multimap<string,string>::iterator> otherTweets;
+//
+//	if(!abonnement.empty())
+//	{
+//		otherTweets = abonnement.equal_range(tweeter[clientSocket]);
+//
+//		if(otherTweets.first->first == tweeter[clientSocket] || otherTweets.first == abonnement.end())
+//		{
+//			for(it = otherTweets.first;it != otherTweets.second;++it)
+//			{
+//				getOwnTweets(getSocketByTweeter(it->second));
+//			}
+//		}
+//	}
+//}
 
-void TwitterServer::getOtherTweets(const SOCKET clientSocket)
+void TwitterServer::sendToFollowers(const SOCKET clientSocket, const string message)
 {
-	string followedTweeter;
+	SOCKET followerSocket;
 	multimap<string, string>::iterator it;
-	pair<multimap<string, string>::iterator, multimap<string,string>::iterator> otherTweets;
+	pair<multimap<string, string>::iterator, multimap<string,string>::iterator> followers;
 
 	if(!abonnement.empty())
 	{
-		otherTweets = abonnement.equal_range(tweeter[clientSocket]);
+		followers = abonnement.equal_range(tweeter[clientSocket]);
 
-		if(otherTweets.first->first == tweeter[clientSocket] || otherTweets.first == abonnement.end())
+		if(followers.first->first == tweeter[clientSocket] || followers.first != abonnement.end())
 		{
-			for(it = otherTweets.first;it != otherTweets.second;++it)
+			for(it = followers.first;it != followers.second;++it)
 			{
-				getOwnTweets(getSocketByTweeter(it->second));
+				followerSocket = getSocketByTweeter(it->second);
+				sendToClient(&followerSocket, message.c_str());
 			}
 		}
 	}
 }
 
-void TwitterServer::getOwnTweets(const SOCKET clientSocket)
-{
-	multimap<string, string>::iterator it;
-
-	string formattedTweet;
-
-	try
-	{
-		for(it = tweet.begin();it != tweet.end();it++)
-		{
-			if(it->first == tweeter[clientSocket])
-			{
-				formattedTweet = tweeter[clientSocket] + ": " + it->second + "\n";
-				sendToClient(&clientSocket, formattedTweet.c_str());
-			}
-		}
-	}
-	catch(string failure)
-	{
-		printf("%s", failure.c_str());
-	}
-}
+//void TwitterServer::getOwnTweets(const SOCKET clientSocket)
+//{
+//	multimap<string, string>::iterator it;
+//
+//	string formattedTweet;
+//
+//	try
+//	{
+//		for(it = tweet.begin();it != tweet.end();it++)
+//		{
+//			if(it->first == tweeter[clientSocket])
+//			{
+//				formattedTweet = tweeter[clientSocket] + ": " + it->second + "\n";
+//				sendToClient(&clientSocket, formattedTweet.c_str());
+//			}
+//		}
+//	}
+//	catch(string failure)
+//	{
+//		printf("%s", failure.c_str());
+//	}
+//}
 
 SOCKET TwitterServer::getSocketByTweeter(const string name)
 {
@@ -169,7 +189,7 @@ void TwitterServer::followTweeter(const SOCKET follower, const string followedTw
 
 	if(tweeterSocket != INVALID_SOCKET && loggedIn(tweeterSocket))	// if that tweeter is logged in and valid
 	{
-		abonnement.insert( pair<string, string>(tweeter[follower], followedTweeter) );		// add abonement
+		abonnement.insert( pair<string, string>(followedTweeter, tweeter[follower]) );		// add abonement
 
 		messageForClient = tweeter[follower] + " is now following " + followedTweeter + "!\n";		// success
 	}
@@ -203,13 +223,15 @@ void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 
 	try
 	{
-		tweet.insert( pair<string, string>(tweeter[clientSocket], text) );		// save tweet
+		tweet.insert( pair<string, string>(tweeter[clientSocket], text) );
 
 		messageForClient = tweeter[clientSocket] + ": " + text + "\n";
 
 		logFile.write(messageForClient.c_str(), messageForClient.length());
 
 		sendToClient(&clientSocket, messageForClient.c_str());
+
+		sendToFollowers(clientSocket, messageForClient);
 	}
 	catch(string failure)
 	{
