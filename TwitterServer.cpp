@@ -9,29 +9,9 @@
 
 #include "TwitterServer.h"
 
-TwitterServer::TwitterServer(const unsigned short port) :
-			   MultiplexingServer()
-{
-//	try
-//	{
-//		socketCreator.createSocket(&requestSocket, AF_INET);	// set up the listening socket
-//		FD_ZERO(&actionFlag);									// set status flag to zero
-//		FD_SET(requestSocket, &actionFlag);						// set up status flag for listen socket
-//
-//		for(int i = 0;i < MAXCLIENTS;i++)						// set all client socktets to invalid
-//			clients[i] = INVALID_SOCKET;
-//	}
-//	catch(string failure)										// if something fails print error
-//	{
-//		printf("%s", failure.c_str());
-//	}
-}
+TwitterServer::TwitterServer(const unsigned short port) : MultiplexingServer() {}
 
-TwitterServer::~TwitterServer(void)		// destructor
-{
-//	closeSockets();						// close all socktes
-//	WSACleanup();						// clean
-}
+TwitterServer::~TwitterServer(void) {}
 
 void TwitterServer::setupServer(const unsigned short port)
 {
@@ -219,6 +199,7 @@ void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 {
 	multimap<string, string>::iterator it = abonnement.begin();
 	string messageForClient;
+	ofstream logFile(LOGFILEPATH, ios::app);
 
 	try
 	{
@@ -226,12 +207,16 @@ void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 
 		messageForClient = tweeter[clientSocket] + ": " + text + "\n";
 
+		logFile.write(messageForClient.c_str(), messageForClient.length());
+
 		sendToClient(&clientSocket, messageForClient.c_str());
 	}
 	catch(string failure)
 	{
 		printf("%s", failure.c_str());
 	}
+
+	logFile.close();
 }
 
 void TwitterServer::logOutTweeter(const SOCKET clientSocket)

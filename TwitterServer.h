@@ -10,7 +10,10 @@
 #ifndef TWITTERSERVER_H_INCLUDED
 #define TWITTERSERVER_H_INCLUDED
 
+#include <fstream>
 #include "MultiplexingServer.h"
+
+#define LOGFILEPATH "logfile.txt"
 
 using namespace std;
 
