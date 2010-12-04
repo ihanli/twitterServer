@@ -121,7 +121,7 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 void TwitterServer::getAllTweets(const SOCKET clientSocket)
 {
 	getOwnTweets(clientSocket);
-	//getOtherTweets(clientSocket);
+	getOtherTweets(clientSocket);
 	sendToClient(&clientSocket, "ETX");
 }
 
@@ -131,13 +131,16 @@ void TwitterServer::getOtherTweets(const SOCKET clientSocket)
 	multimap<string, string>::iterator it;
 	pair<multimap<string, string>::iterator, multimap<string,string>::iterator> otherTweets;
 
-	otherTweets = abonnement.equal_range(tweeter[clientSocket]);
-
-	if(otherTweets.first->first == tweeter[clientSocket] || otherTweets.first == abonnement.end())
+	if(!abonnement.empty())
 	{
-		for(it = otherTweets.first;it != otherTweets.second;++it)
+		otherTweets = abonnement.equal_range(tweeter[clientSocket]);
+
+		if(otherTweets.first->first == tweeter[clientSocket] || otherTweets.first == abonnement.end())
 		{
-			getOwnTweets(getSocketByTweeter(it->second));
+			for(it = otherTweets.first;it != otherTweets.second;++it)
+			{
+				getOwnTweets(getSocketByTweeter(it->second));
+			}
 		}
 	}
 }
