@@ -34,6 +34,8 @@
 		</Compiler>
 		<Unit filename="ExceptionTexter.cpp" />
 		<Unit filename="ExceptionTexter.h" />
+		<Unit filename="MultiplexingServer.cpp" />
+		<Unit filename="MultiplexingServer.h" />
 		<Unit filename="SocketBase.cpp" />
 		<Unit filename="SocketBase.h" />
 		<Unit filename="TwitterServer.cpp" />

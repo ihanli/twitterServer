@@ -12,36 +12,26 @@
 
 #include <map>
 #include "SocketBase.h"
+#include "MultiplexingServer.h"
 
 #define MAXCLIENTS 10			// how many clients the server can handle
 #define BUFFERSIZE 140			// maximum lenghth of the tweets
 
 using namespace std;
 
-class TwitterServer
+class TwitterServer:MultiplexingServer
 {
 	public:
 		TwitterServer(const unsigned short port = 3000);
 		~TwitterServer();
-		void configServer(const unsigned short port = 3000);
-		void clientListener(void);
+		void setupServer(const unsigned short port = 3000);
+		void run(void);
 
 	private:
-		SOCKET requestSocket;
-		map<unsigned int, SOCKET> clients;
 		map<SOCKET, string> tweeter;			// saves tweeter socket and name
 		multimap<string, string> tweet;			// saves tweets by socket and content
 		multimap<string, string> abonnement;	// saves who follows who
 		SOCKADDR_IN localhost;
-		FD_SET actionFlag;
-		SocketBase socketCreator;
-		char* clientMessage;
-
-		void closeRequestSocket(void) const;
-		void closeSockets(void);
-		void acceptClient(int numberOfClients);
-		void sendToClient(const SOCKET* client, const char* message);
-		void receive(const SOCKET* clientSocket);
 
 		//Helper methods
 		SOCKET getSocketByTweeter(const string name);
@@ -56,8 +46,6 @@ class TwitterServer
 		void logInTweeter(const SOCKET clientSocket, const string name);
 		void logOutTweeter(const SOCKET clientSocket);
 		void sendNameOfTweeter(const SOCKET clientSocket);
-		void setClientToOnline(void);
-		void setClientToOffline(SOCKET* clientSocket);
 };
 
 #endif // TWITTERSERVER_H_INCLUDED

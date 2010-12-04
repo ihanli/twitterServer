@@ -1,19 +1,39 @@
 #ifndef MULTIPLEXINGSERVER_H
 #define MULTIPLEXINGSERVER_H
 
+#include <map>
+#include "SocketBase.h"
+
+#define MAXCLIENTS 10			// how many clients the server can handle
+#define BUFFERSIZE 140			// maximum lenghth of the tweets
 
 class MultiplexingServer
 {
 	public:
-		MultiplexingServer(const unsigned short port = 3000);
+		MultiplexingServer();
 		~MultiplexingServer();
+
 	protected:
+		map<unsigned int, SOCKET> clients;
+		char* clientMessage;
+
+		void configServer(const unsigned short port = 3000);
+		void clientListener(void);
+		void sendToClient(const SOCKET* client, const char* message);
+		void receive(const SOCKET* clientSocket);
+		virtual void commandInterpreter(char* command[], const SOCKET clientSocket) = 0;
+
 	private:
 		SOCKET requestSocket;
 		SOCKADDR_IN localhost;
 		FD_SET actionFlag;
 		SocketBase socketCreator;
-		char* clientMessage;
+
+		void closeSockets(void);
+		void acceptClient(void);
+		void setClientToOffline(SOCKET* clientSocket);
+		void setClientToOnline(void);
+		void closeRequestSocket(void) const;
 };
 
 #endif // MULTIPLEXINGSERVER_H
