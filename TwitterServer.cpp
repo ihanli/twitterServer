@@ -122,6 +122,7 @@ void TwitterServer::getAllTweets(const SOCKET clientSocket)
 {
 	getOwnTweets(clientSocket);
 	getOtherTweets(clientSocket);
+	sendToClient(&clientSocket, "ETX");
 }
 
 void TwitterServer::getOtherTweets(const SOCKET clientSocket)
@@ -162,8 +163,6 @@ void TwitterServer::getOwnTweets(const SOCKET clientSocket)
 	{
 		printf("%s", failure.c_str());
 	}
-
-//	sendToClient(&clientSocket, "ETX");
 }
 
 SOCKET TwitterServer::getSocketByTweeter(const string name)
