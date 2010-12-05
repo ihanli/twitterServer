@@ -70,10 +70,10 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 		{
 			followTweeter(clientSocket, command[1]);
 		}
-//		else if(!strcmp(command[0], ":p"))
-//		{
-//			getAllTweets(clientSocket);
-//		}
+		else if(!strcmp(command[0], ":p"))
+		{
+			getAllTweets(clientSocket);
+		}
 		else if(!strcmp(command[0], ":t"))
 		{
 			newTweet(clientSocket, command[1]);
@@ -98,31 +98,52 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 	sendToClient(&clientSocket, "ETX");
 }
 
-//void TwitterServer::getAllTweets(const SOCKET clientSocket)
-//{
-//	getOwnTweets(clientSocket);
-//	getOtherTweets(clientSocket);
-//}
-//
-//void TwitterServer::getOtherTweets(const SOCKET clientSocket)
-//{
-//	string followedTweeter;
-//	multimap<string, string>::iterator it;
-//	pair<multimap<string, string>::iterator, multimap<string,string>::iterator> otherTweets;
-//
-//	if(!abonnement.empty())
-//	{
-//		otherTweets = abonnement.equal_range(tweeter[clientSocket]);
-//
-//		if(otherTweets.first->first == tweeter[clientSocket] || otherTweets.first == abonnement.end())
-//		{
-//			for(it = otherTweets.first;it != otherTweets.second;++it)
-//			{
-//				getOwnTweets(getSocketByTweeter(it->second));
-//			}
-//		}
-//	}
-//}
+void TwitterServer::getAllTweets(const SOCKET clientSocket)
+{
+	getOwnTweets(clientSocket);
+	getOtherTweets(clientSocket);
+}
+
+void TwitterServer::getOtherTweets(const SOCKET clientSocket)
+{
+	string followedTweeter;
+	multimap<string, string>::iterator it;
+	pair<multimap<string, string>::iterator, multimap<string,string>::iterator> otherTweets;
+
+	if(!abonnement.empty())
+	{
+		for(it = abonnement.begin();it != abonnement.end();it++)
+		{
+			if(it->second == tweeter[clientSocket])
+			{
+				getOwnTweets(getSocketByTweeter((it->first)));
+			}
+		}
+	}
+}
+
+void TwitterServer::getOwnTweets(const SOCKET clientSocket)
+{
+	multimap<string, string>::iterator it;
+
+	string formattedTweet;
+
+	try
+	{
+		for(it = tweet.begin();it != tweet.end();it++)
+		{
+			if(it->first == tweeter[clientSocket])
+			{
+				formattedTweet = tweeter[clientSocket] + ": " + it->second + "\n";
+				sendToClient(&clientSocket, formattedTweet.c_str());
+			}
+		}
+	}
+	catch(string failure)
+	{
+		printf("%s", failure.c_str());
+	}
+}
 
 void TwitterServer::sendToFollowers(const SOCKET clientSocket, const string message)
 {
@@ -144,29 +165,6 @@ void TwitterServer::sendToFollowers(const SOCKET clientSocket, const string mess
 		}
 	}
 }
-
-//void TwitterServer::getOwnTweets(const SOCKET clientSocket)
-//{
-//	multimap<string, string>::iterator it;
-//
-//	string formattedTweet;
-//
-//	try
-//	{
-//		for(it = tweet.begin();it != tweet.end();it++)
-//		{
-//			if(it->first == tweeter[clientSocket])
-//			{
-//				formattedTweet = tweeter[clientSocket] + ": " + it->second + "\n";
-//				sendToClient(&clientSocket, formattedTweet.c_str());
-//			}
-//		}
-//	}
-//	catch(string failure)
-//	{
-//		printf("%s", failure.c_str());
-//	}
-//}
 
 SOCKET TwitterServer::getSocketByTweeter(const string name)
 {

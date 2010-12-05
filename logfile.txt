@@ -1,7 +1,6 @@
-ismail: first
-ismail: first
-ismail: second
-ismail: tweeeet
-ismail: tweeeeeeeeeeeeeet
-ismail: one more?
-ismail: tweeeeeeeeeet
+ismail: bleep
+ismail: bloop
+ismail: three
+ismail: one
+ismail: zero
+hanli: what the tweet?
