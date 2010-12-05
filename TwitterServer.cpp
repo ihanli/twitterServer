@@ -100,7 +100,7 @@ void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocke
 
 void TwitterServer::getAllTweets(const SOCKET clientSocket)
 {
-	getOwnTweets(clientSocket);
+	getOwnTweets(tweeter[clientSocket], clientSocket);
 	getOtherTweets(clientSocket);
 }
 
@@ -115,14 +115,13 @@ void TwitterServer::getOtherTweets(const SOCKET clientSocket)
 		{
 			if(it->second == tweeter[clientSocket])
 			{
-				getOwnTweets(getSocketByTweeter((it->first)));
-				printf("other tweet");
+				getOwnTweets(it->first, clientSocket);
 			}
 		}
 	}
 }
 
-void TwitterServer::getOwnTweets(const SOCKET clientSocket)
+void TwitterServer::getOwnTweets(const string nameOfTweeter, const SOCKET clientSocket)
 {
 	multimap<string, string>::iterator it;
 
@@ -132,9 +131,9 @@ void TwitterServer::getOwnTweets(const SOCKET clientSocket)
 	{
 		for(it = tweet.begin();it != tweet.end();it++)
 		{
-			if(it->first == tweeter[clientSocket])
+			if(it->first == nameOfTweeter)
 			{
-				formattedTweet = tweeter[clientSocket] + ": " + it->second + "\n";
+				formattedTweet = nameOfTweeter + ": " + it->second + "\n";
 				sendToClient(&clientSocket, formattedTweet.c_str());
 			}
 		}
@@ -241,7 +240,7 @@ void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 
 void TwitterServer::logOutTweeter(const SOCKET clientSocket)
 {
-//	tweeter.erase(clientSocket);
+	tweeter[clientSocket] = "OFFLINE";
 
 	try
 	{

@@ -19,3 +19,10 @@ ismail: weeet
 ismail: weeet
 hanli: one
 ismail: hellooooooooooooooo!
+ismail: eins
+ismail: zwei
+hanli: my tweet
+hanli: my tweet
+ismail: tweet for hanli
+ismail: second tweet for hanli
+hanli: my second tweet

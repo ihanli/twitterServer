@@ -34,7 +34,7 @@ class TwitterServer:MultiplexingServer
 		SOCKET getSocketByTweeter(const string name);
 		void getOtherTweets(const SOCKET clientSocket);
 		void getAllTweets(const SOCKET clientSocket);
-		void getOwnTweets(const SOCKET clientSocket);
+		void getOwnTweets(const string nameOfTweeter, const SOCKET clientSocket);
 		void sendToFollowers(const SOCKET clientSocket, const string message);
 		void followTweeter(const SOCKET follower, const string followedTweeter);
 		void commandInterpreter(char* command[], const SOCKET clientSocket);
