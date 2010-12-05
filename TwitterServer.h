@@ -28,7 +28,7 @@ class TwitterServer:MultiplexingServer
 	private:
 		map<SOCKET, string> tweeter;			// saves tweeter socket and name
 		multimap<string, string> tweet;			// saves tweets by socket and content
-		multimap<string, string> abonnement;	// saves who follows who
+		multimap<string, string> abonnement;	// saves who is followed by whom
 
 		//Helper methods
 		SOCKET getSocketByTweeter(const string name);
