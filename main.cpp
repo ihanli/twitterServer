@@ -14,18 +14,16 @@ using namespace std;
 
 int main()
 {
-	TwitterServer myTwitterServer;
+	TwitterServer myTwitterServer;			// create the server
 
 	try
 	{
-		myTwitterServer.setupServer();
+		myTwitterServer.setupServer();		// setup the server
 
 		while(true)
-		{
-			myTwitterServer.run();
-		}
+			myTwitterServer.run();			// run the server
 	}
-	catch(string failure)
+	catch(string failure)					// out standard error handling
 	{
 		printf("%s", failure.c_str());
 	}

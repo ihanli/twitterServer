@@ -13,11 +13,11 @@
 #include <fstream>
 #include "MultiplexingServer.h"
 
-#define LOGFILEPATH "logfile.txt"
+#define LOGFILEPATH "logfile.txt"		// our logfile
 
 using namespace std;
 
-class TwitterServer:MultiplexingServer
+class TwitterServer:MultiplexingServer		// server is derived from our multiplexing server
 {
 	public:
 		TwitterServer(const unsigned short port = 3000);
@@ -26,9 +26,9 @@ class TwitterServer:MultiplexingServer
 		void run(void);
 
 	private:
-		map<SOCKET, string> tweeter;			// saves tweeter socket and name
-		multimap<string, string> tweet;			// saves tweets by socket and content
-		multimap<string, string> abonnement;	// saves who is followed by whom
+		map<SOCKET, string> tweeter;			// this map saves the tweeter socket and name
+		multimap<string, string> tweet;			// this multimap saves the tweets by socket and content
+		multimap<string, string> abonnement;	// this multimap saves who is followed by whom
 
 		//Helper methods
 		SOCKET getSocketByTweeter(const string name);

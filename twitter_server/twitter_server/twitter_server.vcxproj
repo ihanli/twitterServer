@@ -77,11 +77,13 @@
   <ItemGroup>
     <ClCompile Include="..\..\ExceptionTexter.cpp" />
     <ClCompile Include="..\..\main.cpp" />
+    <ClCompile Include="..\..\MultiplexingServer.cpp" />
     <ClCompile Include="..\..\SocketBase.cpp" />
     <ClCompile Include="..\..\TwitterServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\ExceptionTexter.h" />
+    <ClInclude Include="..\..\MultiplexingServer.h" />
     <ClInclude Include="..\..\SocketBase.h" />
     <ClInclude Include="..\..\TwitterServer.h" />
   </ItemGroup>
