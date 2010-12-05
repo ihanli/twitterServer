@@ -205,7 +205,7 @@ void TwitterServer::followTweeter(const SOCKET follower, const string followedTw
 
 bool TwitterServer::loggedIn(const SOCKET clientSocket)
 {
-	if(tweeter.find(clientSocket) == tweeter.end())		// check if a tweeter is logged in
+	if(tweeter.find(clientSocket) == tweeter.end() || tweeter[clientSocket] == "OFFLINE")
 		return false;
 
 	else
@@ -240,11 +240,12 @@ void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 
 void TwitterServer::logOutTweeter(const SOCKET clientSocket)
 {
+	string messageForClient = "twitter: " + tweeter[clientSocket] + " just logged out!\n";
 	tweeter[clientSocket] = "OFFLINE";
 
 	try
 	{
-		sendToClient(&clientSocket, "twitter: oooh, the bird flew away!\n");
+		sendToClient(&clientSocket, messageForClient.c_str());
 	}
 	catch(string failure)
 	{
@@ -256,11 +257,11 @@ void TwitterServer::sendNameOfTweeter(const SOCKET clientSocket)
 {
 	string messageForClient;
 
-	messageForClient = "twitter: " + tweeter[clientSocket] + "\n";
+	messageForClient = "twitter: you are " + tweeter[clientSocket] + "\n";
 
 	try
 	{
-		sendToClient(&clientSocket, messageForClient.c_str());		// whoami?
+		sendToClient(&clientSocket, messageForClient.c_str());
 	}
 	catch(string failure)
 	{
@@ -270,11 +271,13 @@ void TwitterServer::sendNameOfTweeter(const SOCKET clientSocket)
 
 void TwitterServer::logInTweeter(const SOCKET clientSocket, const string name)
 {
+	string messageForClient = "twitter: " + name + " logged in!\n";
+
 	tweeter[clientSocket] = name;
 
 	try
 	{
-		sendToClient(&clientSocket, "twitter: hello bird!\n");
+		sendToClient(&clientSocket, messageForClient.c_str());
 	}
 	catch(string failure)
 	{
