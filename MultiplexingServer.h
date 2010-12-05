@@ -7,6 +7,8 @@
 #define MAXCLIENTS 10			// how many clients the server can handle
 #define BUFFERSIZE 140			// maximum lenghth of the tweets
 
+//The MultiplexingServer class handles everything from accepting clients to I/O multiplexing.
+
 class MultiplexingServer
 {
 	public:
