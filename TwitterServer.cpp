@@ -108,7 +108,6 @@ void TwitterServer::getOtherTweets(const SOCKET clientSocket)
 {
 	string followedTweeter;
 	multimap<string, string>::iterator it;
-	pair<multimap<string, string>::iterator, multimap<string,string>::iterator> otherTweets;
 
 	if(!abonnement.empty())
 	{
@@ -117,6 +116,7 @@ void TwitterServer::getOtherTweets(const SOCKET clientSocket)
 			if(it->second == tweeter[clientSocket])
 			{
 				getOwnTweets(getSocketByTweeter((it->first)));
+				printf("other tweet");
 			}
 		}
 	}
@@ -241,7 +241,7 @@ void TwitterServer::newTweet(const SOCKET clientSocket, const string text)
 
 void TwitterServer::logOutTweeter(const SOCKET clientSocket)
 {
-	tweeter.erase(clientSocket);
+//	tweeter.erase(clientSocket);
 
 	try
 	{
