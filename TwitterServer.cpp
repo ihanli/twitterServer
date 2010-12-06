@@ -23,25 +23,25 @@ void TwitterServer::run(void)
 	clientListener();
 }
 
-void TwitterServer::makeSubString(char* command[])			// ??????????
+void TwitterServer::makeSubString(char* command[])			// split message into two halfs
 {
-	unsigned int space = strcspn(clientMessage, " ");
+	unsigned int space = strcspn(clientMessage, " ");		// get index from first space
 
-	command[0] = new char[space];
-	strncpy(command[0], clientMessage, space);
-	command[0][space] = '\0';
+	command[0] = new char[space];							// reserve memory for command, length equals index of space char
+	strncpy(command[0], clientMessage, space);				// copy the command from client message to command at index 0
+	command[0][space] = '\0';								// add string termination
 
-	if(space <= strlen(clientMessage))
+	if(space <= strlen(clientMessage))						// check if space character was present
 	{
-		command[1] = new char[strlen(clientMessage) - space];
+		command[1] = new char[strlen(clientMessage) - space];		// reserve memory for command attribute
 
-		for(unsigned int pos = space + 1;pos < strlen(clientMessage);pos++)
+		for(unsigned int pos = space + 1;pos < strlen(clientMessage);pos++)		// copy every char into command at index 1
 			command[1][pos - space - 1] = clientMessage[pos];
 
-		command[1][strlen(clientMessage) - space - 1] = '\0';
+		command[1][strlen(clientMessage) - space - 1] = '\0';		// add string termination
 	}
 	else
-		command[1] = NULL;
+		command[1] = NULL;									// if space character wasn't present set command attributes to NULL
 }
 
 void TwitterServer::commandInterpreter(char* command[], const SOCKET clientSocket)
@@ -104,7 +104,7 @@ void TwitterServer::getOtherTweets(const SOCKET clientSocket)
 	{
 		for(it = abonnement.begin();it != abonnement.end();it++)
 		{
-			if(it->second == tweeter[clientSocket])			// ????????
+			if(it->second == tweeter[clientSocket])			// send tweets of iterator first to client socket
 				getOwnTweets(it->first, clientSocket);
 		}
 	}
